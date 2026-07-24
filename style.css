@@ -1,1 +1,40 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
+html,
+body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: Inter, Arial, sans-serif;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    height: 64px;
+    flex-shrink: 0;
+}
+
+main {
+    flex: 1;
+    display: flex;
+}
+
+#ai-panel {
+    width: 320px;
+}
+
+#inbox {
+    width: 420px;
+}
+
+#email-view {
+    flex: 1;
+}
