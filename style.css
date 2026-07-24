@@ -20,21 +20,28 @@ body {
 header {
     height: 64px;
     flex-shrink: 0;
+    background: #444; /* temporary */
 }
 
 main {
     flex: 1;
     display: flex;
+    gap: 24px;
+    padding: 24px;
 }
 
 #ai-panel {
-    width: 320px;
+    width: 300px;
+    background: #2d5cff; /* temporary */
 }
 
 #inbox {
-    width: 420px;
+    width: 520px;
+    background: #3aa657; /* temporary */
 }
 
 #email-view {
     flex: 1;
+    margin-top: 40px;
+    background: #d64b4b; /* temporary */
 }
