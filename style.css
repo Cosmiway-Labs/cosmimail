@@ -108,13 +108,42 @@ main{
 
 #ai-panel{
     width:280px;
+
+    background:rgba(255,255,255,.045);
+
+    backdrop-filter:blur(24px);
+
+    border:1px solid rgba(255,255,255,.05);
+
+    border-radius:22px;
 }
 
 #inbox{
     width:680px;
+
+    background:rgba(255,255,255,.085);
+
+    backdrop-filter:blur(24px);
+
+    border:1px solid rgba(255,255,255,.10);
+
+    border-radius:22px;
+
+    box-shadow:
+        0 12px 35px rgba(0,0,0,.22),
+        0 0 0 1px rgba(255,255,255,.02);
 }
 
 #email-view{
     flex:1;
+
     margin-top:60px;
+
+    background:rgba(255,255,255,.06);
+
+    backdrop-filter:blur(24px);
+
+    border:1px solid rgba(255,255,255,.07);
+
+    border-radius:22px;
 }
