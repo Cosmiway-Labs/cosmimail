@@ -6,36 +6,182 @@
     <title>CosmiMail</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div id="stars"></div>
+    <!-- Animated Starfield -->
+    <canvas id="starfield"></canvas>
 
-<div class="hero">
+    <!-- Background Glow -->
+    <div class="background-glow"></div>
 
-    <div class="logo">
-        ✦ COSMIMAIL
+    <!-- Main App -->
+    <div class="app">
+
+        <!-- Sidebar -->
+        <aside class="sidebar glass">
+
+            <div class="logo">
+
+                <div class="logo-star"></div>
+
+                <div class="logo-text">
+                    <h1>CosmiMail</h1>
+                    <p>Mail from the stars</p>
+                </div>
+
+            </div>
+
+            <nav class="nav">
+
+                <button class="nav-item active">
+                    <span>📥</span>
+                    <p>Inbox</p>
+                </button>
+
+                <button class="nav-item">
+                    <span>⭐</span>
+                    <p>Starred</p>
+                </button>
+
+                <button class="nav-item">
+                    <span>📤</span>
+                    <p>Sent</p>
+                </button>
+
+                <button class="nav-item">
+                    <span>📝</span>
+                    <p>Drafts</p>
+                </button>
+
+                <button class="nav-item">
+                    <span>🗑</span>
+                    <p>Trash</p>
+                </button>
+
+            </nav>
+
+            <div class="sidebar-bottom">
+
+                <button class="settings-btn">
+                    ⚙ Settings
+                </button>
+
+            </div>
+
+        </aside>
+
+        <!-- Main -->
+        <main class="main">
+
+            <!-- Header -->
+
+            <header class="topbar glass">
+
+                <div class="search">
+
+                    <svg viewBox="0 0 24 24" width="18" height="18">
+                        <circle cx="11" cy="11" r="7"/>
+                        <line x1="16" y1="16" x2="22" y2="22"/>
+                    </svg>
+
+                    <input
+                        type="text"
+                        placeholder="Search mail..."
+                    >
+
+                </div>
+
+                <div class="profile">
+
+                    <div class="profile-info">
+
+                        <h3 id="username">
+                            Loading...
+                        </h3>
+
+                        <p id="useremail">
+                            ...
+                        </p>
+
+                    </div>
+
+                    <div class="avatar">
+                        S
+                    </div>
+
+                </div>
+
+            </header>
+
+            <!-- Content -->
+
+            <section class="content">
+
+                <!-- Inbox -->
+
+                <section class="mail-list glass">
+
+                    <div class="section-title">
+
+                        <div>
+
+                            <h2>Inbox</h2>
+                            <p id="mail-count">
+                                Loading...
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div id="inbox">
+
+                        <!-- JS inserts cards here -->
+
+                    </div>
+
+                </section>
+
+                <!-- Reader -->
+
+                <section class="reader glass">
+
+                    <div class="reader-placeholder">
+
+                        <div class="placeholder-icon">
+
+                            ✉
+
+                        </div>
+
+                        <h2>
+
+                            Select an email
+
+                        </h2>
+
+                        <p>
+
+                            Choose any message to begin reading.
+
+                        </p>
+
+                    </div>
+
+                </section>
+
+            </section>
+
+        </main>
+
     </div>
 
-    <h1>
-        Email,<br>
-        Reimagined.
-    </h1>
-
-    <p>
-        A beautiful, intelligent workspace built on top of Gmail.
-    </p>
-
-    <button>
-        Continue with Google
-    </button>
-
-</div>
-
-<script src="script.js"></script>
+    <script src="script.js"></script>
 
 </body>
 </html>
