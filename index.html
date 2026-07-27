@@ -1,187 +1,480 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
     <title>CosmiMail</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
 
-    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="style.css">
+
 </head>
+
 <body>
 
-    <!-- Animated Starfield -->
-    <canvas id="starfield"></canvas>
+<!-- ======================================= -->
+<!-- STARFIELD -->
+<!-- ======================================= -->
 
-    <!-- Background Glow -->
-    <div class="background-glow"></div>
+<canvas id="starfield"></canvas>
 
-    <!-- Main App -->
-    <div class="app">
+<div class="nebula"></div>
 
-        <!-- Sidebar -->
-        <aside class="sidebar glass">
+<div class="noise"></div>
 
-            <div class="logo">
+<!-- ======================================= -->
 
-                <div class="logo-star"></div>
+<div class="app">
 
-                <div class="logo-text">
-                    <h1>CosmiMail</h1>
-                    <p>Mail from the stars</p>
+    <!-- =================================== -->
+    <!-- SIDEBAR -->
+    <!-- =================================== -->
+
+    <aside class="sidebar glass">
+
+        <div class="brand">
+
+            <h1>
+
+                CosmiMail
+
+            </h1>
+
+            <p>
+
+                Email that Works For You.
+
+            </p>
+
+        </div>
+
+        <nav>
+
+            <button class="nav-item active">
+
+                <span>📥</span>
+
+                Inbox
+
+            </button>
+
+            <button class="nav-item">
+
+                <span>⭐</span>
+
+                Starred
+
+            </button>
+
+            <button class="nav-item">
+
+                <span>📤</span>
+
+                Sent
+
+            </button>
+
+            <button class="nav-item">
+
+                <span>📝</span>
+
+                Drafts
+
+            </button>
+
+            <button class="nav-item">
+
+                <span>🗑</span>
+
+                Trash
+
+            </button>
+
+        </nav>
+
+        <div class="sidebar-bottom">
+
+            <button class="settings">
+
+                ⚙ Settings
+
+            </button>
+
+        </div>
+
+    </aside>
+
+    <!-- =================================== -->
+    <!-- MAIN -->
+    <!-- =================================== -->
+
+    <main class="main">
+
+        <!-- =============================== -->
+        <!-- TOP BAR -->
+        <!-- =============================== -->
+
+        <header class="topbar glass">
+
+            <div class="search-box">
+
+                <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24">
+
+                    <circle
+                        cx="11"
+                        cy="11"
+                        r="7"/>
+
+                    <line
+                        x1="16"
+                        y1="16"
+                        x2="22"
+                        y2="22"/>
+
+                </svg>
+
+                <input
+
+                    id="search"
+
+                    type="text"
+
+                    placeholder="Search your universe..."
+
+                >
+
+            </div>
+
+            <div class="profile">
+
+                <div class="profile-text">
+
+                    <h3 id="username">
+
+                        Loading...
+
+                    </h3>
+
+                    <p id="useremail">
+
+                        ...
+
+                    </p>
+
+                </div>
+
+                <div class="avatar">
+
+                    S
+
                 </div>
 
             </div>
 
-            <nav class="nav">
+        </header>
 
-                <button class="nav-item active">
-                    <span>📥</span>
-                    <p>Inbox</p>
-                </button>
+        <!-- =============================== -->
 
-                <button class="nav-item">
-                    <span>⭐</span>
-                    <p>Starred</p>
-                </button>
+        <section class="workspace">
 
-                <button class="nav-item">
-                    <span>📤</span>
-                    <p>Sent</p>
-                </button>
+            <!-- =========================== -->
+            <!-- INBOX -->
+            <!-- =========================== -->
 
-                <button class="nav-item">
-                    <span>📝</span>
-                    <p>Drafts</p>
-                </button>
+            <section class="inbox glass">
 
-                <button class="nav-item">
-                    <span>🗑</span>
-                    <p>Trash</p>
-                </button>
+                <div class="section-header">
 
-            </nav>
-
-            <div class="sidebar-bottom">
-
-                <button class="settings-btn">
-                    ⚙ Settings
-                </button>
-
-            </div>
-
-        </aside>
-
-        <!-- Main -->
-        <main class="main">
-
-            <!-- Header -->
-
-            <header class="topbar glass">
-
-                <div class="search">
-
-                    <svg viewBox="0 0 24 24" width="18" height="18">
-                        <circle cx="11" cy="11" r="7"/>
-                        <line x1="16" y1="16" x2="22" y2="22"/>
-                    </svg>
-
-                    <input
-                        type="text"
-                        placeholder="Search mail..."
-                    >
-
-                </div>
-
-                <div class="profile">
-
-                    <div class="profile-info">
-
-                        <h3 id="username">
-                            Loading...
-                        </h3>
-
-                        <p id="useremail">
-                            ...
-                        </p>
-
-                    </div>
-
-                    <div class="avatar">
-                        S
-                    </div>
-
-                </div>
-
-            </header>
-
-            <!-- Content -->
-
-            <section class="content">
-
-                <!-- Inbox -->
-
-                <section class="mail-list glass">
-
-                    <div class="section-title">
-
-                        <div>
-
-                            <h2>Inbox</h2>
-                            <p id="mail-count">
-                                Loading...
-                            </p>
-
-                        </div>
-
-                    </div>
-
-                    <div id="inbox">
-
-                        <!-- JS inserts cards here -->
-
-                    </div>
-
-                </section>
-
-                <!-- Reader -->
-
-                <section class="reader glass">
-
-                    <div class="reader-placeholder">
-
-                        <div class="placeholder-icon">
-
-                            ✉
-
-                        </div>
+                    <div>
 
                         <h2>
 
-                            Select an email
+                            Inbox
 
                         </h2>
 
-                        <p>
+                        <p id="mail-count">
 
-                            Choose any message to begin reading.
+                            Loading...
 
                         </p>
 
                     </div>
 
-                </section>
+                </div>
+
+                <div id="inbox">
+
+                    <!-- JS -->
+
+                </div>
 
             </section>
 
-        </main>
+            <!-- =========================== -->
+            <!-- READER -->
+            <!-- =========================== -->
+
+            <section class="reader glass">
+
+                <div
+                    class="reader-empty"
+                    id="reader-empty">
+
+                    <div class="empty-icon">
+
+                        ✦
+
+                    </div>
+
+                    <h2>
+
+                        Welcome to CosmiMail
+
+                    </h2>
+
+                    <p>
+
+                        Select an email to begin reading.
+
+                    </p>
+
+                </div>
+
+                <div
+                    id="reader"
+                    class="reader-page hidden">
+
+                    <div class="reader-toolbar">
+
+                        <button>
+
+                            Reply
+
+                        </button>
+
+                        <button>
+
+                            Forward
+
+                        </button>
+
+                        <button
+                            class="ai-button">
+
+                            ✨ Improve
+
+                        </button>
+
+                    </div>
+
+                    <div class="reader-header">
+
+                        <h1 id="email-subject">
+
+                        </h1>
+
+                        <div
+                            class="email-meta">
+
+                            <div>
+
+                                <strong>
+
+                                    From
+
+                                </strong>
+
+                                <span id="email-from">
+
+                                </span>
+
+                            </div>
+
+                            <div>
+
+                                <strong>
+
+                                    Date
+
+                                </strong>
+
+                                <span id="email-date">
+
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div
+                        id="email-body"
+                        class="reader-body">
+
+                    </div>
+
+                </div>
+
+            </section>
+                        <!-- ===================================== -->
+            <!-- COMPOSE MODAL -->
+            <!-- ===================================== -->
+
+            <div
+                id="compose-modal"
+                class="modal hidden">
+
+                <div class="modal-card glass">
+
+                    <div class="modal-header">
+
+                        <h2>
+
+                            New Message
+
+                        </h2>
+
+                        <button
+                            id="close-compose">
+
+                            ✕
+
+                        </button>
+
+                    </div>
+
+                    <div class="compose-fields">
+
+                        <input
+                            id="compose-to"
+                            type="email"
+                            placeholder="To">
+
+                        <input
+                            id="compose-subject"
+                            type="text"
+                            placeholder="Subject">
+
+                        <textarea
+                            id="compose-body"
+                            placeholder="Write something wonderful..."></textarea>
+
+                    </div>
+
+                    <div class="compose-toolbar">
+
+                        <button>
+
+                            📎 Attachment
+
+                        </button>
+
+                        <button
+                            class="ai-button">
+
+                            ✨ Improve
+
+                        </button>
+
+                        <button
+                            class="send-button">
+
+                            Send
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- ===================================== -->
+            <!-- LOADING OVERLAY -->
+            <!-- ===================================== -->
+
+            <div
+                id="loading"
+                class="loading hidden">
+
+                <div class="spinner"></div>
+
+                <p>
+
+                    Contacting the stars...
+
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<!-- ===================================== -->
+<!-- TEMPLATES -->
+<!-- ===================================== -->
+
+<template id="email-template">
+
+    <div class="email-card">
+
+        <div class="email-top">
+
+            <div>
+
+                <div class="sender">
+
+                </div>
+
+                <div class="subject">
+
+                </div>
+
+            </div>
+
+            <div class="email-date">
+
+            </div>
+
+        </div>
+
+        <div class="snippet">
+
+        </div>
 
     </div>
 
-    <script src="script.js"></script>
+</template>
+
+<!-- ===================================== -->
+
+<script src="script.js"></script>
 
 </body>
+
 </html>
+
+        </section>
