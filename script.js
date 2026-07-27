@@ -1,109 +1,129 @@
-// =====================================================
+// ======================================================
+// COSMIMAIL
 // STARFIELD ENGINE
-// =====================================================
+// ======================================================
 
 const canvas = document.getElementById("starfield");
 const ctx = canvas.getContext("2d");
 
-let stars = [];
+let W;
+let H;
 
-const STAR_COUNT = 350;
-
+const stars = [];
 const mouse = {
-    x: window.innerWidth / 2,
-    y: window.innerHeight / 2
+    x: 0,
+    y: 0
 };
 
-function resizeCanvas() {
+const STAR_COUNT = 420;
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+// ======================================================
+
+function resize(){
+
+    W = window.innerWidth;
+    H = window.innerHeight;
+
+    canvas.width = W;
+    canvas.height = H;
 
 }
 
-window.addEventListener("resize", resizeCanvas);
+window.addEventListener("resize", resize);
 
-resizeCanvas();
+resize();
 
-// =====================================================
+// ======================================================
 
-class Star {
+class Star{
 
-    constructor() {
+    constructor(){
 
         this.reset();
 
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
+    }
+
+    reset(){
+
+        this.x = Math.random()*W;
+
+        this.y = Math.random()*H;
+
+        this.size =
+            Math.random()*2+0.3;
+
+        this.depth =
+            Math.random()*1.2+0.2;
+
+        this.alpha =
+            Math.random();
+
+        this.twinkle =
+            Math.random()*0.015+0.003;
+
+        this.speed =
+            Math.random()*0.08+0.02;
 
     }
 
-    reset() {
+    update(){
 
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
+        this.alpha+=this.twinkle;
 
-        this.radius = Math.random() * 1.8 + 0.2;
+        if(this.alpha>1){
 
-        this.alpha = Math.random();
+            this.alpha=1;
 
-        this.speed = Math.random() * 0.12 + 0.02;
-
-        this.twinkle = Math.random() * 0.02 + 0.002;
-
-        this.depth = Math.random() * 1 + 0.2;
-
-    }
-
-    update() {
-
-        this.alpha += this.twinkle;
-
-        if (this.alpha >= 1 || this.alpha <= 0.2) {
-
-            this.twinkle *= -1;
+            this.twinkle*=-1;
 
         }
 
-        this.y += this.speed;
+        if(this.alpha<0.2){
 
-        if (this.y > canvas.height + 10) {
+            this.alpha=0.2;
 
-            this.y = -10;
-            this.x = Math.random() * canvas.width;
+            this.twinkle*=-1;
+
+        }
+
+        this.y+=this.speed;
+
+        if(this.y>H+10){
+
+            this.y=-10;
+
+            this.x=Math.random()*W;
 
         }
 
     }
 
-    draw() {
+    draw(){
 
-        const offsetX =
-            (mouse.x - canvas.width / 2)
-            * 0.0008
-            * this.depth;
+        const px=
+            this.x+
+            (mouse.x-W/2)*0.0009*this.depth;
 
-        const offsetY =
-            (mouse.y - canvas.height / 2)
-            * 0.0008
-            * this.depth;
+        const py=
+            this.y+
+            (mouse.y-H/2)*0.0009*this.depth;
 
         ctx.beginPath();
 
         ctx.arc(
-            this.x + offsetX,
-            this.y + offsetY,
-            this.radius,
+            px,
+            py,
+            this.size,
             0,
-            Math.PI * 2
+            Math.PI*2
         );
 
-        ctx.fillStyle =
+        ctx.fillStyle=
             `rgba(255,255,255,${this.alpha})`;
 
-        ctx.shadowBlur = 12;
+        ctx.shadowBlur=12;
 
-        ctx.shadowColor = "#ffffff";
+        ctx.shadowColor="#ffffff";
 
         ctx.fill();
 
@@ -111,140 +131,150 @@ class Star {
 
 }
 
-// =====================================================
+// ======================================================
 
-for (let i = 0; i < STAR_COUNT; i++) {
+for(let i=0;i<STAR_COUNT;i++){
 
-    stars.push(new Star());
+    stars.push(
+        new Star()
+    );
 
 }
 
-// =====================================================
+// ======================================================
 
-window.addEventListener("mousemove", e => {
+window.addEventListener(
 
-    mouse.x = e.clientX;
-    mouse.y = e.clientY;
+    "mousemove",
 
-});
+    e=>{
 
-// =====================================================
+        mouse.x=e.clientX;
 
-function animateStarfield() {
-
-    ctx.clearRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-    );
-
-    for (const star of stars) {
-
-        star.update();
-
-        star.draw();
+        mouse.y=e.clientY;
 
     }
 
-    requestAnimationFrame(
-        animateStarfield
-    );
+);
 
-}
-
-// =====================================================
+// ======================================================
 // SHOOTING STARS
-// =====================================================
+// ======================================================
 
-const shootingStars = [];
+const meteors=[];
 
-class ShootingStar {
+class Meteor{
 
-    constructor() {
+    constructor(){
+
         this.reset();
-    }
-
-    reset() {
-
-        this.x = Math.random() * canvas.width * 1.5;
-
-        this.y = -100;
-
-        this.length = 120 + Math.random() * 180;
-
-        this.speed = 12 + Math.random() * 10;
-
-        this.opacity = .5 + Math.random() * .5;
-
-        this.active = false;
-
-        this.wait =
-            Math.random() * 700 + 250;
 
     }
 
-    update() {
+    reset(){
 
-        if (!this.active) {
+        this.active=false;
+
+        this.wait=
+            Math.random()*600+200;
+
+        this.x=
+            Math.random()*W*1.5;
+
+        this.y=-150;
+
+        this.length=
+            120+Math.random()*180;
+
+        this.speed=
+            10+Math.random()*8;
+
+    }
+
+    update(){
+
+        if(!this.active){
 
             this.wait--;
 
-            if (this.wait <= 0)
-                this.active = true;
+            if(this.wait<0){
+
+                this.active=true;
+
+            }
 
             return;
 
         }
 
-        this.x -= this.speed;
+        this.x-=this.speed;
 
-        this.y += this.speed;
+        this.y+=this.speed;
 
-        if (
-            this.x < -300 ||
-            this.y > canvas.height + 300
-        ) {
+        if(
+
+            this.x<-300 ||
+
+            this.y>H+300
+
+        ){
+
             this.reset();
+
         }
 
     }
 
-    draw() {
+    draw(){
 
-        if (!this.active)
+        if(!this.active)
             return;
 
-        const grad =
+        const g=
+
             ctx.createLinearGradient(
+
                 this.x,
+
                 this.y,
-                this.x + this.length,
-                this.y - this.length
+
+                this.x+this.length,
+
+                this.y-this.length
+
             );
 
-        grad.addColorStop(
+        g.addColorStop(
+
             0,
-            `rgba(255,255,255,${this.opacity})`
+
+            "rgba(255,255,255,.9)"
+
         );
 
-        grad.addColorStop(
+        g.addColorStop(
+
             1,
+
             "rgba(255,255,255,0)"
+
         );
 
         ctx.beginPath();
 
-        ctx.moveTo(this.x, this.y);
-
-        ctx.lineTo(
-            this.x + this.length,
-            this.y - this.length
+        ctx.moveTo(
+            this.x,
+            this.y
         );
 
-        ctx.strokeStyle = grad;
+        ctx.lineTo(
+            this.x+this.length,
+            this.y-this.length
+        );
 
-        ctx.lineWidth = 2;
+        ctx.strokeStyle=g;
+
+        ctx.lineWidth=2;
 
         ctx.stroke();
 
@@ -252,183 +282,410 @@ class ShootingStar {
 
 }
 
-for(let i=0;i<3;i++)
-    shootingStars.push(new ShootingStar());
+for(let i=0;i<4;i++){
 
-animateStarfield();
+    meteors.push(
 
-// =====================================================
-// COSMIMAIL
-// =====================================================
+        new Meteor()
 
-const API_BASE = "https://starfielddatabase.pythonanywhere.com";
-
-// =====================================================
-
-async function getCurrentUser() {
-
-    const response = await fetch(
-        `${API_BASE}/api/me`,
-        {
-            credentials: "include"
-        }
     );
-
-    if(!response.ok)
-        return null;
-
-    return await response.json();
 
 }
 
-// =====================================================
+// ======================================================
 
-async function getInbox(){
+function animate(){
+
+    ctx.clearRect(
+
+        0,
+
+        0,
+
+        W,
+
+        H
+
+    );
+
+    for(const star of stars){
+
+        star.update();
+
+        star.draw();
+
+    }
+
+    for(const meteor of meteors){
+
+        meteor.update();
+
+        meteor.draw();
+
+    }
+
+    requestAnimationFrame(
+
+        animate
+
+    );
+
+}
+
+
+// ======================================================
+// COSMIMAIL APP
+// ======================================================
+
+const API_BASE =
+"https://starfielddatabase.pythonanywhere.com";
+
+let currentUser = null;
+let inbox = [];
+
+// ======================================================
+
+async function api(url){
 
     const response = await fetch(
-        `${API_BASE}/api/gmail/inbox`,
+
+        API_BASE + url,
+
         {
+
             credentials:"include"
+
         }
+
     );
 
-    if(!response.ok)
-        throw new Error("Couldn't load inbox.");
+    if(!response.ok){
 
-    return await response.json();
+        throw new Error(
 
-}
+            await response.text()
 
-// =====================================================
-
-function formatDate(date){
-
-    return new Date(date)
-        .toLocaleDateString(
-            undefined,
-            {
-                month:"short",
-                day:"numeric"
-            }
         );
 
+    }
+
+    return response.json();
+
 }
 
-// =====================================================
+// ======================================================
 
-function getSenderName(from){
+async function loadUser(){
+
+    currentUser =
+
+        await api("/api/me");
+
+    document.getElementById(
+
+        "username"
+
+    ).textContent =
+
+        currentUser.name;
+
+    document.getElementById(
+
+        "useremail"
+
+    ).textContent =
+
+        currentUser.email;
+
+    document.querySelector(
+
+        ".avatar"
+
+    ).textContent =
+
+        currentUser.name
+
+            .charAt(0)
+
+            .toUpperCase();
+
+}
+
+// ======================================================
+
+async function loadInbox(){
+
+    const loading =
+
+        document.getElementById(
+
+            "loading"
+
+        );
+
+    loading.classList.remove(
+
+        "hidden"
+
+    );
+
+    const data =
+
+        await api(
+
+            "/api/gmail/inbox"
+
+        );
+
+    inbox = data;
+
+    loading.classList.add(
+
+        "hidden"
+
+    );
+
+    renderInbox();
+
+}
+
+// ======================================================
+
+function senderName(from){
+
+    if(!from)
+
+        return "";
 
     if(from.includes("<"))
-        return from.split("<")[0].trim();
+
+        return from
+
+            .split("<")[0]
+
+            .trim();
 
     return from;
 
 }
 
-// =====================================================
+// ======================================================
 
-function renderInbox(emails){
+function shortDate(date){
 
-    const inbox =
-        document.getElementById("inbox");
+    return new Date(date)
 
-    inbox.innerHTML="";
+        .toLocaleDateString(
 
-    document.getElementById(
-        "mail-count"
-    ).textContent =
-        `${emails.length} emails`;
+            undefined,
 
-    for(const email of emails){
+            {
 
-        const card =
-            document.createElement("div");
+                month:"short",
 
-        card.className =
-            "email-card fade-in";
+                day:"numeric"
 
-        card.innerHTML=`
+            }
 
-<div class="email-header">
-
-<div class="sender">
-
-${getSenderName(email.from)}
-
-</div>
-
-<div class="email-date">
-
-${formatDate(email.date)}
-
-</div>
-
-</div>
-
-<div class="subject">
-
-${email.subject || "(No Subject)"}
-
-</div>
-
-<div class="snippet">
-
-${email.snippet}
-
-</div>
-
-`;
-
-        inbox.appendChild(card);
-
-    }
-
-}
-
-// =====================================================
-
-async function initCosmiMail(){
-
-    console.log("🚀 CosmiMail");
-
-    const user =
-        await getCurrentUser();
-
-    if(!user){
-
-        console.log(
-            "Not logged in."
         );
 
-        return;
+}
+
+// ======================================================
+
+function renderInbox(){
+
+    const container =
+
+        document.getElementById(
+
+            "inbox"
+
+        );
+
+    container.innerHTML="";
+
+    document.getElementById(
+
+        "mail-count"
+
+    ).textContent =
+
+        inbox.length +
+
+        " emails";
+
+    for(const email of inbox){
+
+        const card =
+
+            document
+
+            .getElementById(
+
+                "email-template"
+
+            )
+
+            .content
+
+            .firstElementChild
+
+            .cloneNode(true);
+
+        card.dataset.id =
+
+            email.id;
+
+        card.querySelector(
+
+            ".sender"
+
+        ).textContent =
+
+            senderName(
+
+                email.from
+
+            );
+
+        card.querySelector(
+
+            ".subject"
+
+        ).textContent =
+
+            email.subject ||
+
+            "(No Subject)";
+
+        card.querySelector(
+
+            ".snippet"
+
+        ).textContent =
+
+            email.snippet;
+
+        card.querySelector(
+
+            ".email-date"
+
+        ).textContent =
+
+            shortDate(
+
+                email.date
+
+            );
+
+        card.addEventListener(
+
+            "click",
+
+            ()=>{
+
+                openEmail(
+
+                    email.id,
+
+                    card
+
+                );
+
+            }
+
+        );
+
+        container.appendChild(
+
+            card
+
+        );
 
     }
 
-    document.getElementById(
-        "username"
-    ).textContent =
-        user.name;
+}
 
-    document.getElementById(
-        "useremail"
-    ).textContent =
-        user.email;
+// ======================================================
 
-    document.querySelector(
-        ".avatar"
-    ).textContent =
-        user.name[0].toUpperCase();
+document
 
-    const emails =
-        await getInbox();
+    .getElementById(
 
-    renderInbox(emails);
+        "search"
+
+    )
+
+    .addEventListener(
+
+        "input",
+
+        e=>{
+
+            const q =
+
+                e.target.value
+
+                .toLowerCase();
+
+            document
+
+                .querySelectorAll(
+
+                    ".email-card"
+
+                )
+
+                .forEach(card=>{
+
+                    const text =
+
+                        card.innerText
+
+                        .toLowerCase();
+
+                    card.style.display =
+
+                        text.includes(q)
+
+                        ? ""
+
+                        : "none";
+
+                });
+
+        }
+
+    );
+
+// ======================================================
+
+async function init(){
+
+    try{
+
+        await loadUser();
+
+        await loadInbox();
+
+    }
+
+    catch(err){
+
+        console.error(err);
+
+    }
 
 }
 
-// =====================================================
+window.addEventListener(
 
-document.addEventListener(
     "DOMContentLoaded",
-    initCosmiMail
+
+    init
+
 );
+
+
+animate();
