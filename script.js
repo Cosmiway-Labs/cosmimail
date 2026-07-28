@@ -118,29 +118,25 @@ document.addEventListener(
 
 async function init(){
 
-    try{
+    console.log("1");
 
-        showLoading();
+    showLoading();
 
-        await loadProfile();
+    console.log("2");
 
-        await loadLabels();
+    await loadProfile();
 
-        await loadFolder("INBOX");
+    console.log("3");
 
-    }
+    await loadLabels();
 
-    catch(error){
+    console.log("4");
 
-        console.error(error);
+    await loadFolder("INBOX");
 
-    }
+    console.log("5");
 
-    finally{
-
-        hideLoading();
-
-    }
+    hideLoading();
 
 }
 
