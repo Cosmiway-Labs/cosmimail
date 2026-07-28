@@ -6,7 +6,7 @@
    CONFIG
 ========================================================== */
 
-const API = "";
+const API = "https://starfielddatabase.pythonanywhere.com";
 
 /* ==========================================================
    STATE
