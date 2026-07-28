@@ -38,6 +38,14 @@
 
 }
 
+/* Hide elements using the HTML hidden attribute */
+
+[hidden]{
+
+    display:none !important;
+
+}
+
 html{
 
     height:100%;
