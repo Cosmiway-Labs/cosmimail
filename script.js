@@ -1,360 +1,75 @@
-// ======================================================
-// COSMIMAIL
-// STARFIELD ENGINE
-// ======================================================
+/* ==========================================================
+   COSMIMAIL V2
+========================================================== */
 
-const canvas = document.getElementById("starfield");
-const ctx = canvas.getContext("2d");
+/* ==========================================================
+   CONFIG
+========================================================== */
 
-let W;
-let H;
+const API = "";
 
-const stars = [];
-const mouse = {
-    x: 0,
-    y: 0
+/* ==========================================================
+   STATE
+========================================================== */
+
+const state = {
+
+    currentLabel: "INBOX",
+
+    nextPageToken: null,
+
+    loading: false,
+
+    selectedEmail: null,
+
+    labels: [],
+
+    emails: []
+
 };
 
-const STAR_COUNT = 420;
+/* ==========================================================
+   ELEMENTS
+========================================================== */
 
-// ======================================================
+const sidebar = document.getElementById("sidebar-navigation");
 
-function resize(){
+const mailList = document.getElementById("mail-list");
 
-    W = window.innerWidth;
-    H = window.innerHeight;
+const reader = document.getElementById("reader");
 
-    canvas.width = W;
-    canvas.height = H;
+const readerEmpty = document.getElementById("reader-empty");
 
-}
+const loading = document.getElementById("loading-overlay");
 
-window.addEventListener("resize", resize);
+const folderTitle = document.getElementById("folder-title");
 
-resize();
+const mailCount = document.getElementById("mail-count");
 
-// ======================================================
+const emailSubject = document.getElementById("email-subject");
 
-class Star{
+const emailFrom = document.getElementById("email-from");
 
-    constructor(){
+const emailTo = document.getElementById("email-to");
 
-        this.reset();
+const emailDate = document.getElementById("email-date");
 
-    }
+const emailBody = document.getElementById("email-body");
 
-    reset(){
+/* ==========================================================
+   API
+========================================================== */
 
-        this.x = Math.random()*W;
-
-        this.y = Math.random()*H;
-
-        this.size =
-            Math.random()*2+0.3;
-
-        this.depth =
-            Math.random()*1.2+0.2;
-
-        this.alpha =
-            Math.random();
-
-        this.twinkle =
-            Math.random()*0.015+0.003;
-
-        this.speed =
-            Math.random()*0.08+0.02;
-
-    }
-
-    update(){
-
-        this.alpha+=this.twinkle;
-
-        if(this.alpha>1){
-
-            this.alpha=1;
-
-            this.twinkle*=-1;
-
-        }
-
-        if(this.alpha<0.2){
-
-            this.alpha=0.2;
-
-            this.twinkle*=-1;
-
-        }
-
-        this.y+=this.speed;
-
-        if(this.y>H+10){
-
-            this.y=-10;
-
-            this.x=Math.random()*W;
-
-        }
-
-    }
-
-    draw(){
-
-        const px=
-            this.x+
-            (mouse.x-W/2)*0.0009*this.depth;
-
-        const py=
-            this.y+
-            (mouse.y-H/2)*0.0009*this.depth;
-
-        ctx.beginPath();
-
-        ctx.arc(
-            px,
-            py,
-            this.size,
-            0,
-            Math.PI*2
-        );
-
-        ctx.fillStyle=
-            `rgba(255,255,255,${this.alpha})`;
-
-        ctx.shadowBlur=12;
-
-        ctx.shadowColor="#ffffff";
-
-        ctx.fill();
-
-    }
-
-}
-
-// ======================================================
-
-for(let i=0;i<STAR_COUNT;i++){
-
-    stars.push(
-        new Star()
-    );
-
-}
-
-// ======================================================
-
-window.addEventListener(
-
-    "mousemove",
-
-    e=>{
-
-        mouse.x=e.clientX;
-
-        mouse.y=e.clientY;
-
-    }
-
-);
-
-// ======================================================
-// SHOOTING STARS
-// ======================================================
-
-const meteors=[];
-
-class Meteor{
-
-    constructor(){
-
-        this.reset();
-
-    }
-
-    reset(){
-
-        this.active=false;
-
-        this.wait=
-            Math.random()*600+200;
-
-        this.x=
-            Math.random()*W*1.5;
-
-        this.y=-150;
-
-        this.length=
-            120+Math.random()*180;
-
-        this.speed=
-            10+Math.random()*8;
-
-    }
-
-    update(){
-
-        if(!this.active){
-
-            this.wait--;
-
-            if(this.wait<0){
-
-                this.active=true;
-
-            }
-
-            return;
-
-        }
-
-        this.x-=this.speed;
-
-        this.y+=this.speed;
-
-        if(
-
-            this.x<-300 ||
-
-            this.y>H+300
-
-        ){
-
-            this.reset();
-
-        }
-
-    }
-
-    draw(){
-
-        if(!this.active)
-            return;
-
-        const g=
-
-            ctx.createLinearGradient(
-
-                this.x,
-
-                this.y,
-
-                this.x+this.length,
-
-                this.y-this.length
-
-            );
-
-        g.addColorStop(
-
-            0,
-
-            "rgba(255,255,255,.9)"
-
-        );
-
-        g.addColorStop(
-
-            1,
-
-            "rgba(255,255,255,0)"
-
-        );
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            this.x,
-            this.y
-        );
-
-        ctx.lineTo(
-            this.x+this.length,
-            this.y-this.length
-        );
-
-        ctx.strokeStyle=g;
-
-        ctx.lineWidth=2;
-
-        ctx.stroke();
-
-    }
-
-}
-
-for(let i=0;i<4;i++){
-
-    meteors.push(
-
-        new Meteor()
-
-    );
-
-}
-
-// ======================================================
-
-function animate(){
-
-    ctx.clearRect(
-
-        0,
-
-        0,
-
-        W,
-
-        H
-
-    );
-
-    for(const star of stars){
-
-        star.update();
-
-        star.draw();
-
-    }
-
-    for(const meteor of meteors){
-
-        meteor.update();
-
-        meteor.draw();
-
-    }
-
-    requestAnimationFrame(
-
-        animate
-
-    );
-
-}
-
-
-// ======================================================
-// COSMIMAIL APP
-// ======================================================
-
-const API_BASE =
-"https://starfielddatabase.pythonanywhere.com";
-
-let currentUser = null;
-let inbox = [];
-
-// ======================================================
-
-async function api(url){
+async function api(url, options = {}){
 
     const response = await fetch(
 
-        API_BASE + url,
+        API + url,
 
         {
+            credentials:"include",
 
-            credentials:"include"
-
+            ...options
         }
 
     );
@@ -363,7 +78,7 @@ async function api(url){
 
         throw new Error(
 
-            await response.text()
+            "Request failed"
 
         );
 
@@ -373,13 +88,69 @@ async function api(url){
 
 }
 
-// ======================================================
+/* ==========================================================
+   LOADING
+========================================================== */
 
-async function loadUser(){
+function showLoading(){
 
-    currentUser =
+    loading.hidden = false;
 
-        await api("/api/me");
+}
+
+function hideLoading(){
+
+    loading.hidden = true;
+
+}
+
+/* ==========================================================
+   INIT
+========================================================== */
+
+document.addEventListener(
+
+    "DOMContentLoaded",
+
+    init
+
+);
+
+async function init(){
+
+    try{
+
+        showLoading();
+
+        await loadProfile();
+
+        await loadLabels();
+
+        await loadFolder("INBOX");
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+    }
+
+    finally{
+
+        hideLoading();
+
+    }
+
+}
+
+/* ==========================================================
+   PROFILE
+========================================================== */
+
+async function loadProfile(){
+
+    const user = await api("/api/me");
 
     document.getElementById(
 
@@ -387,7 +158,7 @@ async function loadUser(){
 
     ).textContent =
 
-        currentUser.name;
+        user.name || "User";
 
     document.getElementById(
 
@@ -395,163 +166,413 @@ async function loadUser(){
 
     ).textContent =
 
-        currentUser.email;
-
-    document.querySelector(
-
-        ".avatar"
-
-    ).textContent =
-
-        currentUser.name
-
-            .charAt(0)
-
-            .toUpperCase();
-
-}
-
-// ======================================================
-
-async function loadInbox(){
-
-    const loading =
-
-        document.getElementById(
-
-            "loading"
-
-        );
-
-    loading.classList.remove(
-
-        "hidden"
-
-    );
-
-    const data =
-
-        await api(
-
-            "/api/gmail/inbox"
-
-        );
-
-    inbox = data;
-
-    loading.classList.add(
-
-        "hidden"
-
-    );
-
-    renderInbox();
-
-}
-
-// ======================================================
-
-function senderName(from){
-
-    if(!from)
-
-        return "";
-
-    if(from.includes("<"))
-
-        return from
-
-            .split("<")[0]
-
-            .trim();
-
-    return from;
-
-}
-
-// ======================================================
-
-function shortDate(date){
-
-    return new Date(date)
-
-        .toLocaleDateString(
-
-            undefined,
-
-            {
-
-                month:"short",
-
-                day:"numeric"
-
-            }
-
-        );
-
-}
-
-// ======================================================
-
-function renderInbox(){
-
-    const container =
-
-        document.getElementById(
-
-            "inbox"
-
-        );
-
-    container.innerHTML="";
+        user.email || "";
 
     document.getElementById(
 
-        "mail-count"
+        "avatar"
 
     ).textContent =
 
-        inbox.length +
+        (user.name || "U")
 
-        " emails";
+        .trim()
 
-    for(const email of inbox){
+        .charAt(0)
 
-        const card =
+        .toUpperCase();
 
-            document
+}
 
-            .getElementById(
+/* ==========================================================
+   LABELS
+========================================================== */
 
-                "email-template"
+async function loadLabels(){
 
-            )
+    state.labels = await api(
 
-            .content
+        "/api/gmail/labels"
 
-            .firstElementChild
+    );
 
-            .cloneNode(true);
+    renderSidebar();
 
-        card.dataset.id =
+}
 
-            email.id;
+/* ==========================================================
+   SIDEBAR
+========================================================== */
 
-        card.querySelector(
+function renderSidebar(){
 
-            ".sender"
+    const categories = document.getElementById(
 
-        ).textContent =
+        "categories-group"
 
-            senderName(
+    );
 
-                email.from
+    const labels = document.getElementById(
+
+        "labels-group"
+
+    );
+
+    categories.innerHTML =
+
+        "<h2>CATEGORIES</h2>";
+
+    labels.innerHTML =
+
+        "<h2>LABELS</h2>";
+
+    const CATEGORY_NAMES = {
+
+        CATEGORY_PERSONAL:
+
+            "Primary",
+
+        CATEGORY_SOCIAL:
+
+            "Social",
+
+        CATEGORY_PROMOTIONS:
+
+            "Promotions",
+
+        CATEGORY_UPDATES:
+
+            "Updates",
+
+        CATEGORY_FORUMS:
+
+            "Forums"
+
+    };
+
+    state.labels.forEach(label=>{
+
+        if(
+
+            label.id==="CHAT" ||
+
+            label.id==="YELLOW_STAR"
+
+        ){
+
+            return;
+
+        }
+
+        if(
+
+            CATEGORY_NAMES[label.id]
+
+        ){
+
+            categories.appendChild(
+
+                createNavButton(
+
+                    CATEGORY_NAMES[label.id],
+
+                    label.id
+
+                )
 
             );
 
-        card.querySelector(
+            return;
 
-            ".subject"
+        }
+
+        if(
+
+            label.type==="user"
+
+        ){
+
+            labels.appendChild(
+
+                createNavButton(
+
+                    label.name,
+
+                    label.id
+
+                )
+
+            );
+
+        }
+
+    });
+
+}
+
+/* ==========================================================
+   NAV BUTTON
+========================================================== */
+
+function createNavButton(
+
+    text,
+
+    labelId
+
+){
+
+    const button =
+
+        document.createElement(
+
+            "button"
+
+        );
+
+    button.className =
+
+        "nav-button";
+
+    button.dataset.label =
+
+        labelId;
+
+    button.innerHTML = `
+
+        <svg viewBox="0 0 24 24">
+
+            <path d="M5 12h14"/>
+
+        </svg>
+
+        <span>${text}</span>
+
+    `;
+
+    button.onclick = ()=>{
+
+        document
+
+            .querySelectorAll(
+
+                ".nav-button"
+
+            )
+
+            .forEach(
+
+                b=>b.classList.remove(
+
+                    "active"
+
+                )
+
+            );
+
+        button.classList.add(
+
+            "active"
+
+        );
+
+        loadFolder(
+
+            labelId
+
+        );
+
+    };
+
+    return button;
+
+}
+
+/* ==========================================================
+   LOAD FOLDER
+========================================================== */
+
+async function loadFolder(
+
+    label,
+
+    append = false
+
+){
+
+    if(state.loading) return;
+
+    state.loading = true;
+
+    try{
+
+        if(!append){
+
+            state.currentLabel = label;
+
+            state.nextPageToken = null;
+
+            state.emails = [];
+
+            mailList.innerHTML = "";
+
+        }
+
+        showLoading();
+
+        let url =
+
+            `/api/gmail/messages?label=${encodeURIComponent(label)}`;
+
+        if(append && state.nextPageToken){
+
+            url +=
+
+                `&pageToken=${encodeURIComponent(state.nextPageToken)}`;
+
+        }
+
+        const result = await api(url);
+
+        state.nextPageToken =
+
+            result.nextPageToken || null;
+
+        state.emails.push(
+
+            ...result.emails
+
+        );
+
+        renderInbox(
+
+            append
+
+        );
+
+        folderTitle.textContent =
+
+            getFolderName(label);
+
+        mailCount.textContent =
+
+            `${state.emails.length} emails`;
+
+    }
+
+    finally{
+
+        hideLoading();
+
+        state.loading = false;
+
+    }
+
+}
+
+/* ==========================================================
+   FRIENDLY NAME
+========================================================== */
+
+function getFolderName(label){
+
+    const map = {
+
+        INBOX:"Inbox",
+
+        STARRED:"Starred",
+
+        IMPORTANT:"Important",
+
+        SENT:"Sent",
+
+        DRAFT:"Drafts",
+
+        SPAM:"Spam",
+
+        TRASH:"Trash",
+
+        CATEGORY_PERSONAL:"Primary",
+
+        CATEGORY_SOCIAL:"Social",
+
+        CATEGORY_PROMOTIONS:"Promotions",
+
+        CATEGORY_UPDATES:"Updates",
+
+        CATEGORY_FORUMS:"Forums"
+
+    };
+
+    return map[label] || label;
+
+}
+
+/* ==========================================================
+   RENDER INBOX
+========================================================== */
+
+function renderInbox(
+
+    append = false
+
+){
+
+    const template =
+
+        document.getElementById(
+
+            "email-template"
+
+        );
+
+    if(!append){
+
+        mailList.innerHTML = "";
+
+    }
+
+    const start =
+
+        append
+
+        ? mailList.children.length
+
+        : 0;
+
+    for(
+
+        let i = start;
+
+        i < state.emails.length;
+
+        i++
+
+    ){
+
+        const email =
+
+            state.emails[i];
+
+        const node =
+
+            template.content
+
+                .firstElementChild
+
+                .cloneNode(true);
+
+        node.querySelector(
+
+            ".mail-sender"
+
+        ).textContent =
+
+            email.from;
+
+        node.querySelector(
+
+            ".mail-subject"
 
         ).textContent =
 
@@ -559,47 +580,37 @@ function renderInbox(){
 
             "(No Subject)";
 
-        card.querySelector(
+        node.querySelector(
 
-            ".snippet"
+            ".mail-snippet"
 
         ).textContent =
 
             email.snippet;
 
-        card.querySelector(
+        node.querySelector(
 
-            ".email-date"
+            ".mail-date"
 
         ).textContent =
 
-            shortDate(
+            email.date;
 
-                email.date
+        node.onclick = ()=>{
+
+            openEmail(
+
+                email.id,
+
+                node
 
             );
 
-        card.addEventListener(
+        };
 
-            "click",
+        mailList.appendChild(
 
-            ()=>{
-
-                openEmail(
-
-                    email.id,
-
-                    card
-
-                );
-
-            }
-
-        );
-
-        container.appendChild(
-
-            card
+            node
 
         );
 
@@ -607,7 +618,173 @@ function renderInbox(){
 
 }
 
-// ======================================================
+/* ==========================================================
+   OPEN EMAIL
+========================================================== */
+
+async function openEmail(
+
+    messageId,
+
+    element
+
+){
+
+    try{
+
+        showLoading();
+
+        document
+
+            .querySelectorAll(
+
+                ".mail-item"
+
+            )
+
+            .forEach(item=>
+
+                item.classList.remove(
+
+                    "active"
+
+                )
+
+            );
+
+        element.classList.add(
+
+            "active"
+
+        );
+
+        const email = await api(
+
+            `/api/gmail/email/${messageId}`
+
+        );
+
+        reader.hidden = false;
+
+        readerEmpty.hidden = true;
+
+        emailSubject.textContent =
+
+            email.subject ||
+
+            "(No Subject)";
+
+        emailFrom.textContent =
+
+            email.from;
+
+        emailTo.textContent =
+
+            email.to;
+
+        emailDate.textContent =
+
+            email.date;
+
+        emailBody.textContent =
+
+            email.body;
+
+        state.selectedEmail =
+
+            email;
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+    }
+
+    finally{
+
+        hideLoading();
+
+    }
+
+}
+
+/* ==========================================================
+   INFINITE SCROLL
+========================================================== */
+
+mailList.addEventListener(
+
+    "scroll",
+
+    ()=>{
+
+        if(
+
+            state.loading ||
+
+            !state.nextPageToken
+
+        ){
+
+            return;
+
+        }
+
+        const remaining =
+
+            mailList.scrollHeight -
+
+            mailList.scrollTop -
+
+            mailList.clientHeight;
+
+        if(
+
+            remaining < 800
+
+        ){
+
+            loadFolder(
+
+                state.currentLabel,
+
+                true
+
+            );
+
+        }
+
+    }
+
+);
+
+/* ==========================================================
+   REFRESH
+========================================================== */
+
+document
+
+    .getElementById(
+
+        "refresh-button"
+
+    )
+
+    .onclick = ()=>{
+
+        loadFolder(
+
+            state.currentLabel
+
+        );
+
+    };
+
+/* ==========================================================
+   SEARCH
+========================================================== */
 
 document
 
@@ -619,73 +796,268 @@ document
 
     .addEventListener(
 
-        "input",
+        "keydown",
 
         e=>{
 
-            const q =
+            if(
+
+                e.key !== "Enter"
+
+            ){
+
+                return;
+
+            }
+
+            searchMail(
 
                 e.target.value
 
-                .toLowerCase();
-
-            document
-
-                .querySelectorAll(
-
-                    ".email-card"
-
-                )
-
-                .forEach(card=>{
-
-                    const text =
-
-                        card.innerText
-
-                        .toLowerCase();
-
-                    card.style.display =
-
-                        text.includes(q)
-
-                        ? ""
-
-                        : "none";
-
-                });
+            );
 
         }
 
     );
 
-// ======================================================
+/* ==========================================================
+   SEARCH
+========================================================== */
 
-async function init(){
+async function searchMail(
 
-    try{
+    query
 
-        await loadUser();
+){
 
-        await loadInbox();
+    if(
+
+        !query.trim()
+
+    ){
+
+        loadFolder(
+
+            state.currentLabel
+
+        );
+
+        return;
 
     }
 
-    catch(err){
+    showLoading();
 
-        console.error(err);
+    try{
+
+        const result = await api(
+
+            `/api/gmail/search?q=${encodeURIComponent(query)}`
+
+        );
+
+        state.emails =
+
+            result.emails;
+
+        state.nextPageToken =
+
+            result.nextPageToken;
+
+        renderInbox();
+
+        folderTitle.textContent =
+
+            "Search";
+
+        mailCount.textContent =
+
+            `${state.emails.length} results`;
+
+    }
+
+    finally{
+
+        hideLoading();
 
     }
 
 }
 
-window.addEventListener(
+/* ==========================================================
+   COMPOSE
+========================================================== */
 
-    "DOMContentLoaded",
+const composePanel =
+    document.getElementById(
+        "compose-panel"
+    );
 
-    init
+document
+    .getElementById(
+        "compose-button"
+    )
+    .onclick = ()=>{
+
+        composePanel.hidden = false;
+
+    };
+
+document
+    .getElementById(
+        "compose-close"
+    )
+    .onclick = ()=>{
+
+        composePanel.hidden = true;
+
+    };
+
+/* ==========================================================
+   ESCAPE
+========================================================== */
+
+document.addEventListener(
+
+    "keydown",
+
+    event=>{
+
+        if(event.key==="Escape"){
+
+            composePanel.hidden = true;
+
+        }
+
+    }
 
 );
 
+/* ==========================================================
+   TOAST
+========================================================== */
 
-animate();
+const toast =
+
+    document.getElementById(
+
+        "toast"
+
+    );
+
+let toastTimer;
+
+function showToast(
+
+    text
+
+){
+
+    clearTimeout(
+
+        toastTimer
+
+    );
+
+    toast.textContent =
+
+        text;
+
+    toast.hidden = false;
+
+    toastTimer = setTimeout(
+
+        ()=>{
+
+            toast.hidden = true;
+
+        },
+
+        2500
+
+    );
+
+}
+
+/* ==========================================================
+   ERROR HANDLER
+========================================================== */
+
+window.addEventListener(
+
+    "unhandledrejection",
+
+    event=>{
+
+        console.error(
+
+            event.reason
+
+        );
+
+        showToast(
+
+            "Something went wrong."
+
+        );
+
+    }
+
+);
+
+/* ==========================================================
+   RESIZE
+========================================================== */
+
+window.addEventListener(
+
+    "resize",
+
+    ()=>{
+
+        // future responsive logic
+
+    }
+
+);
+
+/* ==========================================================
+   UTILITIES
+========================================================== */
+
+function clearReader(){
+
+    reader.hidden = true;
+
+    readerEmpty.hidden = false;
+
+    emailSubject.textContent = "";
+
+    emailFrom.textContent = "";
+
+    emailTo.textContent = "";
+
+    emailDate.textContent = "";
+
+    emailBody.textContent = "";
+
+}
+
+/* ==========================================================
+   LOG
+========================================================== */
+
+console.log(
+
+    "%cCosmiMail",
+
+    "font-size:22px;font-weight:700;color:#4DA6FF"
+
+);
+
+console.log(
+
+    "Ready for launch 🚀"
+
+);
+
