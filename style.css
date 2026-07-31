@@ -2425,3 +2425,3340 @@ select,
 
 }
 
+/*==========================================================
+    PART 6 — COMPOSE WINDOW
+==========================================================*/
+
+/*==========================================================
+    COMPOSE OVERLAY
+==========================================================*/
+
+.compose-overlay{
+
+    position:fixed;
+
+    inset:0;
+
+    pointer-events:none;
+
+    z-index:900;
+
+}
+
+/*==========================================================
+    COMPOSE WINDOW
+==========================================================*/
+
+.compose-window{
+
+    position:absolute;
+
+    right:28px;
+
+    bottom:0;
+
+    width:950px;
+
+    height:700px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    border-radius:18px 18px 0 0;
+
+    overflow:hidden;
+
+    box-shadow:
+        0 24px 80px rgba(0,0,0,.45),
+        0 0 0 1px rgba(255,255,255,.03);
+
+    transform-origin:bottom right;
+
+    animation:composeOpen .24s ease;
+
+    pointer-events:auto;
+
+}
+
+/*==========================================================
+    HEADER
+==========================================================*/
+
+.compose-header{
+
+    height:58px;
+
+    flex-shrink:0;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    padding:0 18px 0 22px;
+
+    border-bottom:1px solid var(--border);
+
+    background:rgba(255,255,255,.015);
+
+    user-select:none;
+
+    cursor:grab;
+
+}
+
+.compose-header:active{
+
+    cursor:grabbing;
+
+}
+
+/*==========================================================
+    TITLE
+==========================================================*/
+
+.compose-title{
+
+    font-size:15px;
+
+    font-weight:650;
+
+    color:white;
+
+    letter-spacing:.01em;
+
+}
+
+/*==========================================================
+    WINDOW CONTROLS
+==========================================================*/
+
+.compose-controls{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:6px;
+
+}
+
+.compose-control{
+
+    width:34px;
+
+    height:34px;
+
+    border-radius:10px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    color:var(--text-soft);
+
+    cursor:pointer;
+
+    transition:
+        background var(--fast),
+        color var(--fast),
+        transform var(--fast);
+
+}
+
+.compose-control:hover{
+
+    background:var(--surface-hover);
+
+    color:white;
+
+}
+
+.compose-control:active{
+
+    transform:scale(.94);
+
+}
+
+/*==========================================================
+    CLOSE BUTTON
+==========================================================*/
+
+.compose-control.close:hover{
+
+    background:#d64545;
+
+    color:white;
+
+}
+
+/*==========================================================
+    BODY
+==========================================================*/
+
+.compose-body{
+
+    flex:1;
+
+    min-height:0;
+
+    display:flex;
+
+    flex-direction:column;
+
+    overflow:hidden;
+
+    background:var(--surface);
+
+}
+
+/*==========================================================
+    CONTENT
+==========================================================*/
+
+.compose-content{
+
+    flex:1;
+
+    min-height:0;
+
+    display:flex;
+
+    flex-direction:column;
+
+    overflow:hidden;
+
+}
+
+/*==========================================================
+    WINDOW STATES
+==========================================================*/
+
+.compose-window.minimized{
+
+    height:58px;
+
+}
+
+.compose-window.minimized .compose-body{
+
+    display:none;
+
+}
+
+.compose-window.maximized{
+
+    width:calc(100vw - 60px);
+
+    height:calc(100vh - 40px);
+
+    right:30px;
+
+    bottom:20px;
+
+    border-radius:18px;
+
+}
+
+/*==========================================================
+    SHADOW WHEN ACTIVE
+==========================================================*/
+
+.compose-window.active{
+
+    box-shadow:
+        0 28px 90px rgba(0,0,0,.55),
+        0 0 0 1px rgba(255,255,255,.04);
+
+}
+
+/*==========================================================
+    DRAGGING
+==========================================================*/
+
+.compose-window.dragging{
+
+    transition:none;
+
+    user-select:none;
+
+}
+
+/*==========================================================
+    RESIZE HOOKS (Future)
+==========================================================*/
+
+.compose-window::after{
+
+    content:"";
+
+    position:absolute;
+
+    right:0;
+
+    bottom:0;
+
+    width:18px;
+
+    height:18px;
+
+    cursor:nwse-resize;
+
+    opacity:0;
+
+}
+
+/*==========================================================
+    OPEN ANIMATION
+==========================================================*/
+
+@keyframes composeOpen{
+
+    from{
+
+        opacity:0;
+
+        transform:
+            translateY(40px)
+            scale(.96);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:
+            translateY(0)
+            scale(1);
+
+    }
+
+}
+
+/*==========================================================
+    MINIMIZE
+==========================================================*/
+
+@keyframes composeMinimize{
+
+    from{
+
+        opacity:1;
+
+    }
+
+    to{
+
+        opacity:.95;
+
+        transform:
+            translateY(642px);
+
+    }
+
+}
+
+/*==========================================================
+    RESTORE
+==========================================================*/
+
+@keyframes composeRestore{
+
+    from{
+
+        transform:
+            translateY(642px);
+
+    }
+
+    to{
+
+        transform:none;
+
+    }
+
+}
+
+/*==========================================================
+    PART 7 — COMPOSE EDITOR
+==========================================================*/
+
+/*==========================================================
+    RECIPIENT AREA
+==========================================================*/
+
+.compose-fields{
+
+    flex-shrink:0;
+
+    display:flex;
+
+    flex-direction:column;
+
+    background:var(--surface);
+
+}
+
+.compose-row{
+
+    min-height:54px;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:18px;
+
+    padding:0 22px;
+
+    border-bottom:1px solid var(--border);
+
+}
+
+.compose-label{
+
+    width:60px;
+
+    flex-shrink:0;
+
+    color:var(--text-muted);
+
+    font-size:14px;
+
+    font-weight:600;
+
+}
+
+.compose-input{
+
+    flex:1;
+
+    height:100%;
+
+    border:none;
+
+    outline:none;
+
+    background:transparent;
+
+    color:white;
+
+    font-size:15px;
+
+    font-family:inherit;
+
+}
+
+.compose-input::placeholder{
+
+    color:var(--text-faint);
+
+}
+
+.compose-input:focus{
+
+    color:white;
+
+}
+
+/*==========================================================
+    CC / BCC
+==========================================================*/
+
+.compose-extra{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:14px;
+
+}
+
+.compose-extra button{
+
+    border:none;
+
+    background:none;
+
+    color:var(--text-faint);
+
+    cursor:pointer;
+
+    font:inherit;
+
+    transition:color var(--fast);
+
+}
+
+.compose-extra button:hover{
+
+    color:white;
+
+}
+
+/*==========================================================
+    SUBJECT
+==========================================================*/
+
+.compose-subject{
+
+    min-height:58px;
+
+    display:flex;
+
+    align-items:center;
+
+    padding:0 22px;
+
+    border-bottom:1px solid var(--border);
+
+}
+
+.subject-input{
+
+    width:100%;
+
+    border:none;
+
+    outline:none;
+
+    background:none;
+
+    color:white;
+
+    font-size:22px;
+
+    font-weight:650;
+
+    font-family:inherit;
+
+}
+
+.subject-input::placeholder{
+
+    color:var(--text-muted);
+
+}
+
+/*==========================================================
+    TOOLBAR
+==========================================================*/
+
+.compose-toolbar{
+
+    height:56px;
+
+    flex-shrink:0;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:4px;
+
+    padding:0 14px;
+
+    border-bottom:1px solid var(--border);
+
+    background:rgba(255,255,255,.01);
+
+}
+
+.toolbar-group{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:2px;
+
+    padding-right:10px;
+
+    margin-right:10px;
+
+    border-right:1px solid var(--border);
+
+}
+
+.toolbar-group:last-child{
+
+    border-right:none;
+
+    margin-right:0;
+
+    padding-right:0;
+
+}
+
+.toolbar-button{
+
+    width:38px;
+
+    height:38px;
+
+    border-radius:10px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    cursor:pointer;
+
+    color:var(--text-soft);
+
+    transition:
+        background var(--fast),
+        color var(--fast),
+        transform var(--fast);
+
+}
+
+.toolbar-button:hover{
+
+    background:var(--surface-hover);
+
+    color:white;
+
+}
+
+.toolbar-button:active{
+
+    transform:scale(.92);
+
+}
+
+.toolbar-button.active{
+
+    background:rgba(79,140,255,.18);
+
+    color:var(--accent);
+
+}
+
+/*==========================================================
+    FONT PICKER
+==========================================================*/
+
+.font-picker{
+
+    min-width:130px;
+
+    height:38px;
+
+    border-radius:10px;
+
+    display:flex;
+
+    align-items:center;
+
+    padding:0 12px;
+
+    cursor:pointer;
+
+    color:var(--text-soft);
+
+    transition:background var(--fast);
+
+}
+
+.font-picker:hover{
+
+    background:var(--surface-hover);
+
+}
+
+.font-size{
+
+    width:60px;
+
+}
+
+/*==========================================================
+    EDITOR
+==========================================================*/
+
+.compose-editor{
+
+    flex:1;
+
+    min-height:0;
+
+    overflow-y:auto;
+
+    padding:30px;
+
+    color:white;
+
+    font-size:16px;
+
+    line-height:1.8;
+
+    outline:none;
+
+    word-break:break-word;
+
+    caret-color:var(--accent);
+
+}
+
+.compose-editor:empty::before{
+
+    content:"Write your email...";
+
+    color:var(--text-muted);
+
+    pointer-events:none;
+
+}
+
+.compose-editor p{
+
+    margin-bottom:1em;
+
+}
+
+.compose-editor h1,
+.compose-editor h2,
+.compose-editor h3{
+
+    margin:1.2em 0 .6em;
+
+}
+
+.compose-editor ul,
+.compose-editor ol{
+
+    padding-left:28px;
+
+}
+
+.compose-editor blockquote{
+
+    margin:18px 0;
+
+    padding-left:18px;
+
+    border-left:3px solid var(--accent);
+
+    color:var(--text-soft);
+
+}
+
+.compose-editor code{
+
+    padding:2px 6px;
+
+    border-radius:6px;
+
+    background:rgba(255,255,255,.06);
+
+    font-family:monospace;
+
+}
+
+.compose-editor::-webkit-scrollbar{
+
+    width:10px;
+
+}
+
+.compose-editor::-webkit-scrollbar-thumb{
+
+    background:rgba(255,255,255,.14);
+
+    border-radius:999px;
+
+}
+
+.compose-editor::-webkit-scrollbar-thumb:hover{
+
+    background:rgba(255,255,255,.22);
+
+}
+
+/*==========================================================
+    PART 8 — COMPOSE ACTIONS
+==========================================================*/
+
+/*==========================================================
+    ATTACHMENTS
+==========================================================*/
+
+.compose-attachments{
+
+    flex-shrink:0;
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    gap:16px;
+
+    padding:20px 24px;
+
+    border-top:1px solid var(--border);
+
+    background:rgba(255,255,255,.01);
+
+}
+
+.attachment-card{
+
+    width:220px;
+
+    display:flex;
+
+    gap:14px;
+
+    align-items:center;
+
+    padding:14px;
+
+    border-radius:16px;
+
+    background:var(--surface-2);
+
+    border:1px solid var(--border);
+
+    transition:
+        transform var(--normal),
+        border-color var(--normal),
+        background var(--normal);
+
+}
+
+.attachment-card:hover{
+
+    transform:translateY(-2px);
+
+    border-color:rgba(255,255,255,.16);
+
+    background:var(--surface-hover);
+
+}
+
+.attachment-icon{
+
+    width:46px;
+
+    height:46px;
+
+    border-radius:12px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    background:rgba(255,255,255,.05);
+
+    flex-shrink:0;
+
+}
+
+.attachment-info{
+
+    flex:1;
+
+    min-width:0;
+
+}
+
+.attachment-name{
+
+    white-space:nowrap;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+    color:white;
+
+    font-weight:600;
+
+}
+
+.attachment-size{
+
+    margin-top:4px;
+
+    color:var(--text-muted);
+
+    font-size:13px;
+
+}
+
+.attachment-remove{
+
+    opacity:0;
+
+    cursor:pointer;
+
+    transition:opacity var(--fast);
+
+}
+
+.attachment-card:hover .attachment-remove{
+
+    opacity:1;
+
+}
+
+/*==========================================================
+    ACTION BAR
+==========================================================*/
+
+.compose-footer{
+
+    height:70px;
+
+    flex-shrink:0;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    padding:0 22px;
+
+    border-top:1px solid var(--border);
+
+    background:var(--surface);
+
+}
+
+.footer-left,
+
+.footer-right{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:14px;
+
+}
+
+/*==========================================================
+    ATTACH BUTTON
+==========================================================*/
+
+.attach-button{
+
+    width:42px;
+
+    height:42px;
+
+    border-radius:12px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    cursor:pointer;
+
+    color:var(--text-soft);
+
+    transition:all var(--fast);
+
+}
+
+.attach-button:hover{
+
+    background:var(--surface-hover);
+
+    color:white;
+
+}
+
+/*==========================================================
+    DRAFT STATUS
+==========================================================*/
+
+.draft-status{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    color:var(--text-muted);
+
+    font-size:14px;
+
+}
+
+.draft-dot{
+
+    width:8px;
+
+    height:8px;
+
+    border-radius:50%;
+
+    background:#34c759;
+
+}
+
+.draft-status.saving .draft-dot{
+
+    background:#ffb547;
+
+    animation:draftPulse 1s infinite;
+
+}
+
+.draft-status.offline .draft-dot{
+
+    background:#ff5f57;
+
+}
+
+/*==========================================================
+    BUTTONS
+==========================================================*/
+
+.compose-button{
+
+    height:42px;
+
+    padding:0 18px;
+
+    border-radius:12px;
+
+    border:none;
+
+    cursor:pointer;
+
+    font:inherit;
+
+    font-weight:600;
+
+    transition:all var(--fast);
+
+}
+
+.compose-button.cancel{
+
+    background:transparent;
+
+    color:var(--text-soft);
+
+}
+
+.compose-button.cancel:hover{
+
+    background:var(--surface-hover);
+
+    color:white;
+
+}
+
+.compose-button.send{
+
+    background:var(--accent);
+
+    color:white;
+
+    min-width:120px;
+
+}
+
+.compose-button.send:hover{
+
+    transform:translateY(-2px);
+
+    filter:brightness(1.08);
+
+}
+
+.compose-button.send:active{
+
+    transform:scale(.96);
+
+}
+
+.compose-button.send svg{
+
+    transition:transform var(--fast);
+
+}
+
+.compose-button.send:hover svg{
+
+    transform:translateX(4px);
+
+}
+
+/*==========================================================
+    DRAG & DROP
+==========================================================*/
+
+.compose-window.dragover{
+
+    border-color:var(--accent);
+
+    box-shadow:
+
+        0 0 0 2px rgba(79,140,255,.25),
+
+        0 20px 70px rgba(0,0,0,.45);
+
+}
+
+.compose-drop-overlay{
+
+    position:absolute;
+
+    inset:0;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    background:rgba(79,140,255,.08);
+
+    backdrop-filter:blur(4px);
+
+    opacity:0;
+
+    pointer-events:none;
+
+    transition:opacity var(--normal);
+
+}
+
+.compose-window.dragover .compose-drop-overlay{
+
+    opacity:1;
+
+}
+
+.drop-text{
+
+    font-size:22px;
+
+    font-weight:700;
+
+    color:white;
+
+}
+
+/*==========================================================
+    DRAFT ANIMATION
+==========================================================*/
+
+@keyframes draftPulse{
+
+    0%{
+
+        opacity:1;
+
+    }
+
+    50%{
+
+        opacity:.45;
+
+    }
+
+    100%{
+
+        opacity:1;
+
+    }
+
+}
+
+/*==========================================================
+    PART 9 — COMPOSE POLISH
+==========================================================*/
+
+/*==========================================================
+    WINDOW FOCUS
+==========================================================*/
+
+.compose-window{
+
+    transition:
+        width .22s,
+        height .22s,
+        right .22s,
+        bottom .22s,
+        transform .18s,
+        box-shadow .22s,
+        border-color .22s;
+
+}
+
+.compose-window:focus-within{
+
+    border-color:rgba(79,140,255,.32);
+
+    box-shadow:
+
+        0 30px 90px rgba(0,0,0,.55),
+
+        0 0 0 1px rgba(79,140,255,.18);
+
+}
+
+/*==========================================================
+    HOVER LIFT
+==========================================================*/
+
+.compose-window:hover{
+
+    box-shadow:
+
+        0 34px 100px rgba(0,0,0,.58),
+
+        0 0 0 1px rgba(255,255,255,.04);
+
+}
+
+/*==========================================================
+    WINDOW TITLE
+==========================================================*/
+
+.compose-title{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+}
+
+.compose-title::before{
+
+    content:"";
+
+    width:8px;
+
+    height:8px;
+
+    border-radius:50%;
+
+    background:#34c759;
+
+}
+
+/*==========================================================
+    FIELD FOCUS
+==========================================================*/
+
+.compose-row:focus-within{
+
+    background:rgba(255,255,255,.015);
+
+}
+
+.compose-row:focus-within .compose-label{
+
+    color:var(--accent);
+
+}
+
+/*==========================================================
+    SUBJECT FOCUS
+==========================================================*/
+
+.compose-subject:focus-within{
+
+    background:rgba(255,255,255,.01);
+
+}
+
+/*==========================================================
+    TEXT SELECTION
+==========================================================*/
+
+.compose-editor::selection,
+
+.compose-input::selection,
+
+.subject-input::selection{
+
+    background:rgba(79,140,255,.35);
+
+    color:white;
+
+}
+
+/*==========================================================
+    INPUT TRANSITIONS
+==========================================================*/
+
+.compose-input,
+
+.subject-input{
+
+    transition:
+
+        color var(--fast),
+
+        opacity var(--fast);
+
+}
+
+/*==========================================================
+    SCROLL POLISH
+==========================================================*/
+
+.compose-editor{
+
+    scroll-behavior:smooth;
+
+    overscroll-behavior:contain;
+
+}
+
+/*==========================================================
+    MINIMIZED BAR
+==========================================================*/
+
+.compose-window.minimized{
+
+    width:340px;
+
+    border-radius:16px 16px 0 0;
+
+}
+
+.compose-window.minimized:hover{
+
+    transform:translateY(-2px);
+
+}
+
+/*==========================================================
+    MAXIMIZED
+==========================================================*/
+
+.compose-window.maximized{
+
+    max-width:none;
+
+    max-height:none;
+
+}
+
+/*==========================================================
+    HEADER GLOW
+==========================================================*/
+
+.compose-header{
+
+    position:relative;
+
+}
+
+.compose-header::after{
+
+    content:"";
+
+    position:absolute;
+
+    left:0;
+
+    right:0;
+
+    bottom:0;
+
+    height:1px;
+
+    background:
+
+        linear-gradient(
+
+            90deg,
+
+            transparent,
+
+            rgba(255,255,255,.06),
+
+            transparent
+
+        );
+
+}
+
+/*==========================================================
+    SEND BUTTON GLOW
+==========================================================*/
+
+.compose-button.send{
+
+    position:relative;
+
+    overflow:hidden;
+
+}
+
+.compose-button.send::before{
+
+    content:"";
+
+    position:absolute;
+
+    left:-120%;
+
+    top:0;
+
+    width:80%;
+
+    height:100%;
+
+    background:
+
+        linear-gradient(
+
+            90deg,
+
+            transparent,
+
+            rgba(255,255,255,.22),
+
+            transparent
+
+        );
+
+}
+
+.compose-button.send:hover::before{
+
+    left:160%;
+
+    transition:left .6s ease;
+
+}
+
+/*==========================================================
+    TOOLBAR RIPPLE
+==========================================================*/
+
+.toolbar-button{
+
+    position:relative;
+
+    overflow:hidden;
+
+}
+
+/*==========================================================
+    ATTACHMENT ICON
+==========================================================*/
+
+.attachment-icon{
+
+    transition:
+
+        transform var(--normal),
+
+        background var(--normal);
+
+}
+
+.attachment-card:hover .attachment-icon{
+
+    transform:scale(1.08);
+
+    background:rgba(79,140,255,.12);
+
+}
+
+/*==========================================================
+    REMOVE BUTTON
+==========================================================*/
+
+.attachment-remove{
+
+    transform:scale(.8);
+
+}
+
+.attachment-card:hover .attachment-remove{
+
+    transform:scale(1);
+
+}
+
+/*==========================================================
+    FOOTER SHADOW
+==========================================================*/
+
+.compose-footer{
+
+    position:relative;
+
+}
+
+.compose-footer::before{
+
+    content:"";
+
+    position:absolute;
+
+    top:-1px;
+
+    left:0;
+
+    right:0;
+
+    height:1px;
+
+    background:
+
+        linear-gradient(
+
+            90deg,
+
+            transparent,
+
+            rgba(255,255,255,.06),
+
+            transparent
+
+        );
+
+}
+
+/*==========================================================
+    ACCESSIBILITY
+==========================================================*/
+
+.compose-control:focus-visible,
+
+.toolbar-button:focus-visible,
+
+.compose-button:focus-visible,
+
+.attach-button:focus-visible{
+
+    outline:2px solid var(--accent);
+
+    outline-offset:2px;
+
+}
+
+/*==========================================================
+    REDUCED MOTION
+==========================================================*/
+
+@media (prefers-reduced-motion:reduce){
+
+    .compose-window,
+
+    .compose-button,
+
+    .toolbar-button,
+
+    .attachment-card,
+
+    .compose-control{
+
+        transition:none;
+
+        animation:none;
+
+    }
+
+}
+
+/*==========================================================
+    PART 10 — MENUS
+==========================================================*/
+
+/*==========================================================
+    BASE MENU
+==========================================================*/
+
+.menu{
+
+    position:fixed;
+
+    min-width:240px;
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    border-radius:18px;
+
+    overflow:hidden;
+
+    box-shadow:
+        0 24px 80px rgba(0,0,0,.42),
+        0 0 0 1px rgba(255,255,255,.03);
+
+    z-index:3000;
+
+    animation:menuOpen .16s ease;
+
+}
+
+.menu.hidden{
+
+    display:none;
+
+}
+
+/*==========================================================
+    MENU HEADER
+==========================================================*/
+
+.menu-header{
+
+    padding:16px 18px;
+
+    border-bottom:1px solid var(--border);
+
+    font-size:13px;
+
+    text-transform:uppercase;
+
+    letter-spacing:.08em;
+
+    color:var(--text-faint);
+
+}
+
+/*==========================================================
+    MENU BODY
+==========================================================*/
+
+.menu-body{
+
+    padding:8px;
+
+}
+
+/*==========================================================
+    MENU ITEM
+==========================================================*/
+
+.menu-item{
+
+    height:42px;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:14px;
+
+    padding:0 14px;
+
+    border-radius:12px;
+
+    cursor:pointer;
+
+    color:var(--text-soft);
+
+    transition:
+        background var(--fast),
+        color var(--fast),
+        transform var(--fast);
+
+}
+
+.menu-item:hover{
+
+    background:var(--surface-hover);
+
+    color:white;
+
+}
+
+.menu-item:active{
+
+    transform:scale(.98);
+
+}
+
+.menu-item.disabled{
+
+    opacity:.45;
+
+    cursor:default;
+
+}
+
+.menu-item.disabled:hover{
+
+    background:none;
+
+}
+
+/*==========================================================
+    ICON
+==========================================================*/
+
+.menu-icon{
+
+    width:18px;
+
+    display:flex;
+
+    justify-content:center;
+
+    flex-shrink:0;
+
+}
+
+/*==========================================================
+    LABEL
+==========================================================*/
+
+.menu-label{
+
+    flex:1;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+    white-space:nowrap;
+
+}
+
+/*==========================================================
+    SHORTCUT
+==========================================================*/
+
+.menu-shortcut{
+
+    color:var(--text-faint);
+
+    font-size:13px;
+
+}
+
+/*==========================================================
+    CHEVRON
+==========================================================*/
+
+.menu-arrow{
+
+    color:var(--text-faint);
+
+}
+
+/*==========================================================
+    DIVIDER
+==========================================================*/
+
+.menu-divider{
+
+    height:1px;
+
+    margin:8px 0;
+
+    background:var(--border);
+
+}
+
+/*==========================================================
+    SUBMENU
+==========================================================*/
+
+.submenu{
+
+    position:absolute;
+
+    top:0;
+
+    left:calc(100% + 8px);
+
+    min-width:220px;
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    border-radius:16px;
+
+    overflow:hidden;
+
+    box-shadow:
+        0 22px 70px rgba(0,0,0,.4);
+
+    display:none;
+
+}
+
+.menu-item:hover > .submenu{
+
+    display:block;
+
+}
+
+/*==========================================================
+    PROFILE MENU
+==========================================================*/
+
+.profile-menu{
+
+    width:300px;
+
+}
+
+.profile-card{
+
+    padding:22px;
+
+    display:flex;
+
+    gap:16px;
+
+    align-items:center;
+
+    border-bottom:1px solid var(--border);
+
+}
+
+.profile-avatar{
+
+    width:56px;
+
+    height:56px;
+
+    border-radius:50%;
+
+    background:var(--surface-hover);
+
+}
+
+.profile-info{
+
+    flex:1;
+
+    min-width:0;
+
+}
+
+.profile-name{
+
+    font-weight:650;
+
+    color:white;
+
+}
+
+.profile-email{
+
+    margin-top:4px;
+
+    color:var(--text-muted);
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+    white-space:nowrap;
+
+}
+
+/*==========================================================
+    SEARCH SUGGESTIONS
+==========================================================*/
+
+.search-menu{
+
+    width:480px;
+
+    max-height:420px;
+
+    overflow-y:auto;
+
+}
+
+.search-result{
+
+    display:flex;
+
+    gap:14px;
+
+    padding:14px 18px;
+
+    cursor:pointer;
+
+    transition:background var(--fast);
+
+}
+
+.search-result:hover{
+
+    background:var(--surface-hover);
+
+}
+
+.search-result-icon{
+
+    width:36px;
+
+    height:36px;
+
+    border-radius:10px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    background:rgba(255,255,255,.05);
+
+}
+
+.search-result-content{
+
+    flex:1;
+
+    min-width:0;
+
+}
+
+.search-result-title{
+
+    color:white;
+
+    font-weight:600;
+
+}
+
+.search-result-preview{
+
+    margin-top:3px;
+
+    color:var(--text-muted);
+
+    font-size:14px;
+
+    white-space:nowrap;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+}
+
+/*==========================================================
+    TOOLTIP
+==========================================================*/
+
+.tooltip{
+
+    position:fixed;
+
+    padding:8px 12px;
+
+    background:#111;
+
+    border:1px solid rgba(255,255,255,.08);
+
+    border-radius:10px;
+
+    color:white;
+
+    font-size:13px;
+
+    pointer-events:none;
+
+    opacity:0;
+
+    transform:translateY(4px);
+
+    transition:
+        opacity var(--fast),
+        transform var(--fast);
+
+    z-index:5000;
+
+}
+
+.tooltip.show{
+
+    opacity:1;
+
+    transform:none;
+
+}
+
+/*==========================================================
+    MENU ANIMATION
+==========================================================*/
+
+@keyframes menuOpen{
+
+    from{
+
+        opacity:0;
+
+        transform:
+            translateY(8px)
+            scale(.98);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:none;
+
+    }
+
+}
+
+/*==========================================================
+    PART 11 — DIALOGS
+==========================================================*/
+
+/*==========================================================
+    OVERLAY
+==========================================================*/
+
+.dialog-overlay{
+
+    position:fixed;
+
+    inset:0;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    background:rgba(0,0,0,.55);
+
+    backdrop-filter:blur(6px);
+
+    opacity:0;
+
+    pointer-events:none;
+
+    transition:
+        opacity .18s;
+
+    z-index:4000;
+
+}
+
+.dialog-overlay.show{
+
+    opacity:1;
+
+    pointer-events:auto;
+
+}
+
+/*==========================================================
+    DIALOG
+==========================================================*/
+
+.dialog{
+
+    width:520px;
+
+    max-width:calc(100vw - 40px);
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    border-radius:22px;
+
+    overflow:hidden;
+
+    transform:translateY(14px) scale(.97);
+
+    transition:
+        transform .18s;
+
+    box-shadow:
+
+        0 35px 100px rgba(0,0,0,.45),
+
+        0 0 0 1px rgba(255,255,255,.03);
+
+}
+
+.dialog-overlay.show .dialog{
+
+    transform:none;
+
+}
+
+/*==========================================================
+    HEADER
+==========================================================*/
+
+.dialog-header{
+
+    padding:26px 28px 18px;
+
+    border-bottom:1px solid var(--border);
+
+}
+
+.dialog-title{
+
+    color:white;
+
+    font-size:24px;
+
+    font-weight:700;
+
+}
+
+.dialog-subtitle{
+
+    margin-top:8px;
+
+    color:var(--text-muted);
+
+    line-height:1.6;
+
+}
+
+/*==========================================================
+    BODY
+==========================================================*/
+
+.dialog-body{
+
+    padding:26px 28px;
+
+}
+
+/*==========================================================
+    FOOTER
+==========================================================*/
+
+.dialog-footer{
+
+    display:flex;
+
+    justify-content:flex-end;
+
+    gap:14px;
+
+    padding:20px 28px;
+
+    border-top:1px solid var(--border);
+
+}
+
+/*==========================================================
+    BUTTONS
+==========================================================*/
+
+.dialog-button{
+
+    min-width:110px;
+
+    height:42px;
+
+    padding:0 18px;
+
+    border:none;
+
+    border-radius:12px;
+
+    cursor:pointer;
+
+    font:inherit;
+
+    font-weight:600;
+
+    transition:all var(--fast);
+
+}
+
+.dialog-button.secondary{
+
+    background:transparent;
+
+    color:var(--text-soft);
+
+}
+
+.dialog-button.secondary:hover{
+
+    background:var(--surface-hover);
+
+    color:white;
+
+}
+
+.dialog-button.primary{
+
+    background:var(--accent);
+
+    color:white;
+
+}
+
+.dialog-button.primary:hover{
+
+    transform:translateY(-2px);
+
+    filter:brightness(1.08);
+
+}
+
+.dialog-button.primary:active{
+
+    transform:scale(.96);
+
+}
+
+/*==========================================================
+    DANGER
+==========================================================*/
+
+.dialog-button.danger{
+
+    background:#d64545;
+
+    color:white;
+
+}
+
+.dialog-button.danger:hover{
+
+    filter:brightness(1.08);
+
+}
+
+/*==========================================================
+    ICON
+==========================================================*/
+
+.dialog-icon{
+
+    width:70px;
+
+    height:70px;
+
+    border-radius:20px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    margin-bottom:20px;
+
+    background:rgba(255,255,255,.05);
+
+}
+
+.dialog-icon.warning{
+
+    background:rgba(255,181,71,.14);
+
+}
+
+.dialog-icon.danger{
+
+    background:rgba(214,69,69,.14);
+
+}
+
+.dialog-icon.success{
+
+    background:rgba(52,199,89,.14);
+
+}
+
+/*==========================================================
+    INPUT
+==========================================================*/
+
+.dialog-input{
+
+    width:100%;
+
+    height:48px;
+
+    margin-top:20px;
+
+    padding:0 16px;
+
+    border:1px solid var(--border);
+
+    border-radius:12px;
+
+    background:var(--surface-2);
+
+    color:white;
+
+    outline:none;
+
+}
+
+.dialog-input:focus{
+
+    border-color:var(--accent);
+
+}
+
+/*==========================================================
+    CHECKBOX
+==========================================================*/
+
+.dialog-check{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+    margin-top:18px;
+
+    color:var(--text-soft);
+
+}
+
+/*==========================================================
+    EMPTY STATE
+==========================================================*/
+
+.empty-state{
+
+    height:100%;
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:center;
+
+    align-items:center;
+
+    text-align:center;
+
+    padding:60px;
+
+}
+
+.empty-icon{
+
+    width:84px;
+
+    height:84px;
+
+    border-radius:24px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    background:rgba(255,255,255,.05);
+
+    margin-bottom:24px;
+
+}
+
+.empty-title{
+
+    color:white;
+
+    font-size:26px;
+
+    font-weight:700;
+
+}
+
+.empty-description{
+
+    max-width:420px;
+
+    margin-top:12px;
+
+    color:var(--text-muted);
+
+    line-height:1.7;
+
+}
+
+/*==========================================================
+    LOADING OVERLAY
+==========================================================*/
+
+.loading-overlay{
+
+    position:absolute;
+
+    inset:0;
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:center;
+
+    align-items:center;
+
+    gap:22px;
+
+    background:rgba(12,12,14,.82);
+
+    backdrop-filter:blur(5px);
+
+    opacity:0;
+
+    pointer-events:none;
+
+    transition:opacity .2s;
+
+}
+
+.loading-overlay.show{
+
+    opacity:1;
+
+    pointer-events:auto;
+
+}
+
+.loading-text{
+
+    color:var(--text-soft);
+
+    font-size:15px;
+
+}
+
+/*==========================================================
+    SNACKBAR
+==========================================================*/
+
+.snackbar{
+
+    position:fixed;
+
+    left:50%;
+
+    bottom:34px;
+
+    transform:translateX(-50%) translateY(20px);
+
+    min-width:320px;
+
+    padding:16px 22px;
+
+    border-radius:16px;
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    color:white;
+
+    opacity:0;
+
+    transition:
+
+        opacity .18s,
+
+        transform .18s;
+
+    z-index:4500;
+
+}
+
+.snackbar.show{
+
+    opacity:1;
+
+    transform:translateX(-50%);
+
+}
+
+/*==========================================================
+    PART 12 — ANIMATIONS & FEEDBACK
+==========================================================*/
+
+/*==========================================================
+    COSMISPINNER
+==========================================================*/
+
+.spinner-overlay{
+
+    position:fixed;
+
+    inset:0;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    background:var(--bg);
+
+    opacity:0;
+
+    pointer-events:none;
+
+    transition:opacity .18s;
+
+    z-index:6000;
+
+}
+
+.spinner-overlay.show{
+
+    opacity:1;
+
+    pointer-events:auto;
+
+}
+
+.spinner-container{
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    gap:28px;
+
+}
+
+.spinner-caption{
+
+    color:var(--text-soft);
+
+    font-size:15px;
+
+    letter-spacing:.02em;
+
+    opacity:.85;
+
+}
+
+/*==========================================================
+    SKELETONS
+==========================================================*/
+
+.skeleton{
+
+    position:relative;
+
+    overflow:hidden;
+
+    background:rgba(255,255,255,.05);
+
+}
+
+.skeleton::after{
+
+    content:"";
+
+    position:absolute;
+
+    inset:0;
+
+    transform:translateX(-100%);
+
+    background:
+
+        linear-gradient(
+
+            90deg,
+
+            transparent,
+
+            rgba(255,255,255,.08),
+
+            transparent
+
+        );
+
+    animation:skeleton 1.2s linear infinite;
+
+}
+
+.skeleton-line{
+
+    height:14px;
+
+    border-radius:8px;
+
+    margin-bottom:12px;
+
+}
+
+.skeleton-circle{
+
+    width:44px;
+
+    height:44px;
+
+    border-radius:50%;
+
+}
+
+/*==========================================================
+    EMAIL PLACEHOLDERS
+==========================================================*/
+
+.email-placeholder{
+
+    display:flex;
+
+    gap:16px;
+
+    padding:18px 22px;
+
+    border-bottom:1px solid var(--border);
+
+}
+
+.email-placeholder-content{
+
+    flex:1;
+
+}
+
+/*==========================================================
+    TOAST
+==========================================================*/
+
+.toast{
+
+    position:fixed;
+
+    right:28px;
+
+    bottom:28px;
+
+    min-width:320px;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:16px;
+
+    padding:16px 18px;
+
+    border-radius:18px;
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    color:white;
+
+    box-shadow:
+
+        0 22px 70px rgba(0,0,0,.45);
+
+    transform:
+
+        translateY(18px);
+
+    opacity:0;
+
+    transition:
+
+        opacity .18s,
+
+        transform .18s;
+
+    z-index:7000;
+
+}
+
+.toast.show{
+
+    opacity:1;
+
+    transform:none;
+
+}
+
+.toast-icon{
+
+    width:42px;
+
+    height:42px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    border-radius:12px;
+
+    background:rgba(255,255,255,.05);
+
+}
+
+.toast-content{
+
+    flex:1;
+
+}
+
+.toast-title{
+
+    font-weight:650;
+
+}
+
+.toast-message{
+
+    margin-top:3px;
+
+    color:var(--text-muted);
+
+    font-size:14px;
+
+}
+
+/*==========================================================
+    BADGES
+==========================================================*/
+
+.badge{
+
+    min-width:22px;
+
+    height:22px;
+
+    padding:0 8px;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    border-radius:999px;
+
+    background:var(--accent);
+
+    color:white;
+
+    font-size:12px;
+
+    font-weight:700;
+
+}
+
+/*==========================================================
+    RIPPLE
+==========================================================*/
+
+.ripple{
+
+    position:absolute;
+
+    border-radius:50%;
+
+    transform:scale(0);
+
+    background:rgba(255,255,255,.22);
+
+    animation:ripple .55s ease-out;
+
+}
+
+/*==========================================================
+    MICROINTERACTIONS
+==========================================================*/
+
+.clickable{
+
+    transition:
+
+        transform var(--fast),
+
+        filter var(--fast);
+
+}
+
+.clickable:hover{
+
+    filter:brightness(1.03);
+
+}
+
+.clickable:active{
+
+    transform:scale(.97);
+
+}
+
+/*==========================================================
+    FADE
+==========================================================*/
+
+.fade-in{
+
+    animation:fade .2s ease;
+
+}
+
+.slide-up{
+
+    animation:slideUp .22s ease;
+
+}
+
+.pop{
+
+    animation:pop .18s ease;
+
+}
+
+/*==========================================================
+    KEYFRAMES
+==========================================================*/
+
+@keyframes fade{
+
+    from{
+
+        opacity:0;
+
+    }
+
+    to{
+
+        opacity:1;
+
+    }
+
+}
+
+@keyframes slideUp{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(10px);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:none;
+
+    }
+
+}
+
+@keyframes pop{
+
+    0%{
+
+        transform:scale(.92);
+
+    }
+
+    100%{
+
+        transform:scale(1);
+
+    }
+
+}
+
+@keyframes ripple{
+
+    to{
+
+        transform:scale(4);
+
+        opacity:0;
+
+    }
+
+}
+
+@keyframes skeleton{
+
+    to{
+
+        transform:translateX(100%);
+
+    }
+
+}
+
+/*==========================================================
+    PART 13 — RESPONSIVE & UTILITIES
+==========================================================*/
+
+/*==========================================================
+    Z-INDEX SYSTEM
+==========================================================*/
+
+:root{
+
+    --z-sidebar:100;
+    --z-content:200;
+    --z-compose:900;
+    --z-menu:3000;
+    --z-dialog:4000;
+    --z-spinner:6000;
+    --z-toast:7000;
+
+}
+
+/*==========================================================
+    BORDER RADIUS SYSTEM
+==========================================================*/
+
+:root{
+
+    --radius-small:10px;
+    --radius-medium:14px;
+    --radius-large:18px;
+    --radius-window:22px;
+
+}
+
+/*==========================================================
+    SHADOW SYSTEM
+==========================================================*/
+
+:root{
+
+    --shadow-card:
+        0 10px 30px rgba(0,0,0,.22);
+
+    --shadow-menu:
+        0 18px 55px rgba(0,0,0,.35);
+
+    --shadow-window:
+        0 28px 90px rgba(0,0,0,.45);
+
+    --shadow-dialog:
+        0 36px 110px rgba(0,0,0,.55);
+
+}
+
+/*==========================================================
+    GLOBAL SCROLLBAR
+==========================================================*/
+
+*{
+
+    scrollbar-width:thin;
+
+    scrollbar-color:
+        rgba(255,255,255,.18)
+        transparent;
+
+}
+
+::-webkit-scrollbar{
+
+    width:10px;
+
+    height:10px;
+
+}
+
+::-webkit-scrollbar-track{
+
+    background:transparent;
+
+}
+
+::-webkit-scrollbar-thumb{
+
+    background:
+        rgba(255,255,255,.16);
+
+    border-radius:999px;
+
+}
+
+::-webkit-scrollbar-thumb:hover{
+
+    background:
+        rgba(255,255,255,.28);
+
+}
+
+/*==========================================================
+    FLEX FIXES
+==========================================================*/
+
+.app,
+
+.main-layout,
+
+.reader,
+
+.inbox,
+
+.sidebar,
+
+.compose-window,
+
+.compose-content,
+
+.settings,
+
+.settings-content{
+
+    min-width:0;
+
+    min-height:0;
+
+}
+
+/*==========================================================
+    COMMON UTILITIES
+==========================================================*/
+
+.hidden{
+
+    display:none !important;
+
+}
+
+.invisible{
+
+    visibility:hidden;
+
+}
+
+.flex{
+
+    display:flex;
+
+}
+
+.column{
+
+    flex-direction:column;
+
+}
+
+.center{
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+}
+
+.grow{
+
+    flex:1;
+
+}
+
+.noselect{
+
+    user-select:none;
+
+}
+
+.clickable{
+
+    cursor:pointer;
+
+}
+
+.round{
+
+    border-radius:999px;
+
+}
+
+.blur{
+
+    backdrop-filter:blur(10px);
+
+}
+
+/*==========================================================
+    OPACITY HELPERS
+==========================================================*/
+
+.opacity-0{
+
+    opacity:0;
+
+}
+
+.opacity-50{
+
+    opacity:.5;
+
+}
+
+.opacity-100{
+
+    opacity:1;
+
+}
+
+/*==========================================================
+    SPACING HELPERS
+==========================================================*/
+
+.mt-8{margin-top:8px;}
+.mt-16{margin-top:16px;}
+.mt-24{margin-top:24px;}
+
+.mb-8{margin-bottom:8px;}
+.mb-16{margin-bottom:16px;}
+.mb-24{margin-bottom:24px;}
+
+/*==========================================================
+    DIVIDERS
+==========================================================*/
+
+.divider{
+
+    height:1px;
+
+    background:var(--border);
+
+}
+
+.vertical-divider{
+
+    width:1px;
+
+    align-self:stretch;
+
+    background:var(--border);
+
+}
+
+/*==========================================================
+    TRANSITIONS
+==========================================================*/
+
+.transition{
+
+    transition:all var(--normal);
+
+}
+
+.fast{
+
+    transition:all var(--fast);
+
+}
+
+/*==========================================================
+    FOCUS
+==========================================================*/
+
+:focus-visible{
+
+    outline:2px solid var(--accent);
+
+    outline-offset:2px;
+
+}
+
+/*==========================================================
+    IMAGE
+==========================================================*/
+
+img{
+
+    max-width:100%;
+
+    display:block;
+
+}
+
+/*==========================================================
+    SVG
+==========================================================*/
+
+svg{
+
+    flex-shrink:0;
+
+}
+
+/*==========================================================
+    BUTTON RESET
+==========================================================*/
+
+button{
+
+    font:inherit;
+
+}
+
+/*==========================================================
+    INPUT RESET
+==========================================================*/
+
+input,
+
+textarea,
+
+select{
+
+    font:inherit;
+
+}
+
+/*==========================================================
+    RESPONSIVE
+==========================================================*/
+
+@media (max-width:1600px){
+
+    .compose-window{
+
+        width:860px;
+
+        height:650px;
+
+    }
+
+}
+
+@media (max-width:1400px){
+
+    .sidebar{
+
+        width:250px;
+
+    }
+
+    .compose-window{
+
+        width:760px;
+
+        height:600px;
+
+    }
+
+}
+
+@media (max-width:1200px){
+
+    .reader{
+
+        min-width:380px;
+
+    }
+
+    .compose-window{
+
+        width:680px;
+
+        height:560px;
+
+    }
+
+}
+
+@media (max-width:1024px){
+
+    .sidebar{
+
+        width:220px;
+
+    }
+
+    .compose-window{
+
+        right:14px;
+
+        width:calc(100vw - 28px);
+
+        height:calc(100vh - 28px);
+
+        bottom:14px;
+
+        border-radius:18px;
+
+    }
+
+}
+
+/*==========================================================
+    PRINT
+==========================================================*/
+
+@media print{
+
+    .sidebar,
+
+    .compose-window,
+
+    .toast,
+
+    .menu,
+
+    .dialog{
+
+        display:none !important;
+
+    }
+
+}
+
+/*==========================================================
+    REDUCED MOTION
+==========================================================*/
+
+@media (prefers-reduced-motion:reduce){
+
+    *{
+
+        animation:none !important;
+
+        transition:none !important;
+
+        scroll-behavior:auto !important;
+
+    }
+
+}
