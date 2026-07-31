@@ -2635,9 +2635,9 @@ initializeControllers();
     API
 ==========================================================*/
 
-const api={
+const api = {
 
-    base:""
+    base: "https://starfielddatabase.pythonanywhere.com"
 
 };
 
