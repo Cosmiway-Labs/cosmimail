@@ -2671,7 +2671,7 @@ async function apiRequest(
 
                 credentials:
 
-                    "same-origin",
+                    "include",
 
                 ...options
 
