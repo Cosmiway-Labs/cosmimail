@@ -87,13 +87,7 @@ const ui = {
     INITIALIZATION
 ==========================================================*/
 
-document.addEventListener(
 
-    "DOMContentLoaded",
-
-    initializeCosmiMail
-
-);
 
 /*==========================================================
     STARTUP
