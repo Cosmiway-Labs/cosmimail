@@ -1,9 +1,23 @@
 /*==========================================================
-    COSMIMAIL V2
+    COSMIMAIL V3
     Built by Cosmiway Labs
 
     PART 1 — FOUNDATION
 ==========================================================*/
+
+/*==========================================================
+    CONFIG
+==========================================================*/
+
+const CONFIG = {
+
+    apiBase: "https://starfielddatabase.pythonanywhere.com",
+
+    inboxPageSize: 20,
+
+    toastDuration: 2600
+
+};
 
 /*==========================================================
     GLOBAL STATE
@@ -15,25 +29,21 @@ const state = {
 
     loading: false,
 
+    loadingMore: false,
+
     currentFolder: "inbox",
 
+    currentUser: null,
+
     selectedEmail: null,
+
+    searchQuery: "",
 
     emails: [],
 
     filteredEmails: [],
 
-    composeOpen: false,
-
-    composeMinimized: false,
-
-    composeMaximized: false,
-
-    searchQuery: "",
-
-    settingsPage: "general",
-
-    currentUser: null
+    nextPageToken: null
 
 };
 
@@ -53,19 +63,19 @@ const ui = {
 
     emailList: document.getElementById("emailList"),
 
-    readerBody: document.getElementById("readerBody"),
-
     readerTitle: document.querySelector(".reader-title"),
+
+    readerBody: document.getElementById("readerBody"),
 
     searchInput: document.getElementById("searchInput"),
 
     composeWindow: document.getElementById("composeWindow"),
 
-    composeEditor: document.getElementById("composeEditor"),
-
     composeTo: document.getElementById("composeTo"),
 
     composeSubject: document.getElementById("composeSubject"),
+
+    composeEditor: document.getElementById("composeEditor"),
 
     settingsPage: document.getElementById("settingsPage"),
 
@@ -84,18 +94,112 @@ const ui = {
 };
 
 /*==========================================================
-    INITIALIZATION
+    UTILITIES
 ==========================================================*/
 
+function debug(...args){
 
+    console.log(
+
+        "[CosmiMail]",
+
+        ...args
+
+    );
+
+}
+
+function escapeHTML(text){
+
+    const div = document.createElement(
+
+        "div"
+
+    );
+
+    div.textContent = text ?? "";
+
+    return div.innerHTML;
+
+}
+
+function formatDate(date){
+
+    if(!date){
+
+        return "";
+
+    }
+
+    return new Date(date)
+
+        .toLocaleString();
+
+}
+
+/*==========================================================
+    API
+==========================================================*/
+
+async function apiRequest(
+
+    endpoint,
+
+    options = {}
+
+){
+
+    const response = await fetch(
+
+        CONFIG.apiBase + endpoint,
+
+        {
+
+            credentials: "include",
+
+            headers: {
+
+                "Content-Type":
+
+                    "application/json"
+
+            },
+
+            ...options
+
+        }
+
+    );
+
+    if(
+
+        !response.ok
+
+    ){
+
+        throw new Error(
+
+            response.statusText
+
+        );
+
+    }
+
+    return await response.json();
+
+}
 
 /*==========================================================
     STARTUP
 ==========================================================*/
 
-async function initializeCosmiMail(){
+async function startApplication(){
 
-    if(state.initialized){
+    if(
+
+        state.initialized
+
+    ){
 
         return;
 
@@ -103,215 +207,224 @@ async function initializeCosmiMail(){
 
     state.initialized = true;
 
-    showSpinner("Starting CosmiMail...");
+    debug(
 
-    cacheElements();
-
-    registerEvents();
-
-    await loadSettings();
-
-    await loadAccount();
-
-    await loadInbox();
-
-    hideSpinner();
-
-}
-
-/*==========================================================
-    CACHE
-==========================================================*/
-
-function cacheElements(){
-
-    console.log(
-
-        "DOM cached."
+        "Starting CosmiMail..."
 
     );
 
 }
-
 /*==========================================================
-    EVENTS
+    PART 2 — INITIALIZATION
 ==========================================================*/
 
-function registerEvents(){
+/*==========================================================
+    VERIFY DOM
+==========================================================*/
 
-    ui.searchInput.addEventListener(
+function verifyDOM(){
 
-        "input",
+    const required = [
 
-        onSearch
+        ui.emailList,
+
+        ui.readerBody,
+
+        ui.readerTitle,
+
+        ui.searchInput,
+
+        ui.composeWindow,
+
+        ui.composeEditor,
+
+        ui.settingsPage,
+
+        ui.spinner,
+
+        ui.toast,
+
+        ui.dialog
+
+    ];
+
+    const missing = required.filter(
+
+        element => !element
 
     );
 
-}
+    if(
 
-/*==========================================================
-    PLACEHOLDERS
-==========================================================*/
+        missing.length
 
-async function loadSettings(){
+    ){
 
-    return;
+        console.warn(
 
-}
-
-async function loadAccount(){
-
-    return;
-
-}
-
-async function loadInbox(){
-
-    return;
-
-}
-
-/*==========================================================
-    SEARCH
-==========================================================*/
-
-function onSearch(event){
-
-    state.searchQuery =
-
-        event.target.value
-
-        .trim()
-
-        .toLowerCase();
-
-}
-
-/*==========================================================
-    SPINNER
-==========================================================*/
-
-function showSpinner(text){
-
-    ui.spinner.classList.add(
-
-        "show"
-
-    );
-
-    const caption =
-
-        document.getElementById(
-
-            "spinnerCaption"
+            `Missing ${missing.length} required DOM element(s).`
 
         );
-
-    if(caption){
-
-        caption.textContent = text;
 
     }
 
 }
 
-function hideSpinner(){
+/*==========================================================
+    REGISTER EVENTS
+==========================================================*/
 
-    ui.spinner.classList.remove(
+function registerEvents(){
 
-        "show"
+    ui.searchInput?.addEventListener(
+
+        "input",
+
+        handleSearch
+
+    );
+
+    document.addEventListener(
+
+        "keydown",
+
+        handleKeyboardShortcuts
 
     );
 
 }
 
 /*==========================================================
-    TOAST
+    INITIALIZE UI
 ==========================================================*/
 
-function showToast(
+function initializeUI(){
 
-    title,
+    hideSpinner();
 
-    message
+    hideToast();
 
-){
+    closeDialog();
 
-    document.getElementById(
+    closeAllMenus();
 
-        "toastTitle"
+}
 
-    ).textContent = title;
+/*==========================================================
+    START APPLICATION
+==========================================================*/
 
-    document.getElementById(
+async function startApplication(){
 
-        "toastMessage"
+    if(
 
-    ).textContent = message;
+        state.initialized
 
-    ui.toast.classList.add(
+    ){
 
-        "show"
+        return;
+
+    }
+
+    state.initialized = true;
+
+    debug(
+
+        "Starting CosmiMail..."
 
     );
 
-    setTimeout(
+    verifyDOM();
 
-        ()=>{
+    initializeUI();
 
-            ui.toast.classList.remove(
+    registerEvents();
 
-                "show"
+    await loadAccount();
 
-            );
+    await loadFolder(
 
-        },
+        "inbox"
 
-        2500
+    );
+
+    debug(
+
+        "CosmiMail Ready."
 
     );
 
 }
 
 /*==========================================================
-    PART 2 — EMAIL ENGINE
+    START
+==========================================================*/
+
+window.addEventListener(
+
+    "DOMContentLoaded",
+
+    startApplication
+
+);
+
+/*==========================================================
+    PART 3 — INBOX ENGINE
 ==========================================================*/
 
 /*==========================================================
-    EMAIL LOADING
+    LOAD FOLDER
 ==========================================================*/
 
-async function loadInbox(){
+async function loadFolder(folder){
+
+    if(
+
+        state.loading
+
+    ){
+
+        return;
+
+    }
+
+    state.loading = true;
+
+    state.currentFolder = folder;
+
+    state.nextPageToken = null;
+
+    state.emails = [];
+
+    state.filteredEmails = [];
+
+    showSpinner(
+
+        "Loading..."
+
+    );
+
+    showSkeletons();
 
     try{
 
-        state.loading = true;
+        const response = await apiRequest(
 
-        showSkeletons();
-
-        const response = await fetch(
-
-            "/api/emails"
+            `/api/gmail/messages?label=${getFolderLabel(folder)}`
 
         );
 
-        if(!response.ok){
-
-            throw new Error(
-
-                "Failed to load inbox."
-
-            );
-
-        }
-
         state.emails =
 
-            await response.json();
+            response.emails || [];
 
         state.filteredEmails =
 
             [...state.emails];
+
+        state.nextPageToken =
+
+            response.nextPageToken || null;
 
         renderInbox();
 
@@ -319,7 +432,11 @@ async function loadInbox(){
 
     catch(error){
 
-        console.error(error);
+        console.error(
+
+            error
+
+        );
 
         showToast(
 
@@ -337,7 +454,147 @@ async function loadInbox(){
 
         hideSkeletons();
 
+        hideSpinner();
+
     }
+
+}
+
+/*==========================================================
+    LOAD MORE EMAILS
+==========================================================*/
+
+async function loadMoreEmails(){
+
+    if(
+
+        state.loadingMore ||
+
+        !state.nextPageToken
+
+    ){
+
+        return;
+
+    }
+
+    state.loadingMore = true;
+
+    try{
+
+        const response = await apiRequest(
+
+            `/api/gmail/messages?label=${getFolderLabel(state.currentFolder)}&pageToken=${state.nextPageToken}`
+
+        );
+
+        state.emails.push(
+
+            ...response.emails
+
+        );
+
+        filterEmails();
+
+        state.nextPageToken =
+
+            response.nextPageToken || null;
+
+        renderInbox();
+
+    }
+
+    catch(error){
+
+        console.error(
+
+            error
+
+        );
+
+    }
+
+    finally{
+
+        state.loadingMore = false;
+
+    }
+
+}
+
+/*==========================================================
+    FILTER EMAILS
+==========================================================*/
+
+function filterEmails(){
+
+    const query =
+
+        state.searchQuery;
+
+    if(
+
+        query === ""
+
+    ){
+
+        state.filteredEmails =
+
+            [...state.emails];
+
+        return;
+
+    }
+
+    state.filteredEmails =
+
+        state.emails.filter(
+
+            email =>
+
+                email.subject
+
+                    ?.toLowerCase()
+
+                    .includes(query)
+
+                ||
+
+                email.from
+
+                    ?.toLowerCase()
+
+                    .includes(query)
+
+                ||
+
+                email.snippet
+
+                    ?.toLowerCase()
+
+                    .includes(query)
+
+        );
+
+}
+
+/*==========================================================
+    SEARCH
+==========================================================*/
+
+function handleSearch(event){
+
+    state.searchQuery =
+
+        event.target.value
+
+        .trim()
+
+        .toLowerCase();
+
+    filterEmails();
+
+    renderInbox();
 
 }
 
@@ -355,21 +612,7 @@ function renderInbox(){
 
     ){
 
-        ui.emailList.innerHTML = `
-
-            <div class="empty-state">
-
-                <h2>No emails</h2>
-
-                <p>
-
-                    Nothing to show.
-
-                </p>
-
-            </div>
-
-        `;
+        showEmptyInbox();
 
         return;
 
@@ -377,7 +620,7 @@ function renderInbox(){
 
     state.filteredEmails.forEach(
 
-        createEmailCard
+        renderEmailCard
 
     );
 
@@ -387,7 +630,7 @@ function renderInbox(){
     EMAIL CARD
 ==========================================================*/
 
-function createEmailCard(email){
+function renderEmailCard(email){
 
     const card =
 
@@ -401,29 +644,19 @@ function createEmailCard(email){
 
         "mail-item";
 
-    if(email.unread){
-
-        card.classList.add(
-
-            "unread"
-
-        );
-
-    }
-
     card.innerHTML = `
 
         <div class="mail-header">
 
             <div class="mail-from">
 
-                ${email.from}
+                ${escapeHTML(email.from)}
 
             </div>
 
             <div class="mail-time">
 
-                ${email.time}
+                ${escapeHTML(email.date)}
 
             </div>
 
@@ -431,13 +664,13 @@ function createEmailCard(email){
 
         <div class="mail-subject">
 
-            ${email.subject}
+            ${escapeHTML(email.subject)}
 
         </div>
 
         <div class="mail-preview">
 
-            ${email.preview}
+            ${escapeHTML(email.snippet)}
 
         </div>
 
@@ -468,44 +701,228 @@ function createEmailCard(email){
 }
 
 /*==========================================================
-    OPEN EMAIL
+    FOLDER LABELS
 ==========================================================*/
 
-function openEmail(id){
+function getFolderLabel(folder){
 
-    const email =
+    switch(folder){
 
-        state.emails.find(
+        case "sent":
 
-            mail=>mail.id===id
+            return "SENT";
+
+        case "trash":
+
+            return "TRASH";
+
+        case "starred":
+
+            return "STARRED";
+
+        default:
+
+            return "INBOX";
+
+    }
+
+}
+
+/*==========================================================
+    PART 4 — INFINITE SCROLL
+==========================================================*/
+
+/*==========================================================
+    SCROLL OBSERVER
+==========================================================*/
+
+let inboxObserver = null;
+
+/*==========================================================
+    INITIALIZE
+==========================================================*/
+
+function initializeInfiniteScroll(){
+
+    if(
+
+        inboxObserver
+
+    ){
+
+        inboxObserver.disconnect();
+
+    }
+
+    const sentinel =
+
+        document.createElement(
+
+            "div"
 
         );
 
-    if(!email){
+    sentinel.id =
+
+        "inboxSentinel";
+
+    ui.emailList.appendChild(
+
+        sentinel
+
+    );
+
+    inboxObserver =
+
+        new IntersectionObserver(
+
+            handleInfiniteScroll,
+
+            {
+
+                root: ui.inbox,
+
+                rootMargin: "250px",
+
+                threshold: 0
+
+            }
+
+        );
+
+    inboxObserver.observe(
+
+        sentinel
+
+    );
+
+}
+
+/*==========================================================
+    CALLBACK
+==========================================================*/
+
+function handleInfiniteScroll(entries){
+
+    const entry =
+
+        entries[0];
+
+    if(
+
+        !entry.isIntersecting
+
+    ){
 
         return;
 
     }
 
-    state.selectedEmail = email;
-
-    renderReader();
-
-    highlightEmail(id);
+    loadMoreEmails();
 
 }
 
 /*==========================================================
-    READER
+    REFRESH OBSERVER
+==========================================================*/
+
+function refreshInfiniteScroll(){
+
+    inboxObserver?.disconnect();
+
+    initializeInfiniteScroll();
+
+}
+
+/*==========================================================
+    PART 5 — READER ENGINE
+==========================================================*/
+
+/*==========================================================
+    OPEN EMAIL
+==========================================================*/
+
+async function openEmail(id){
+
+    if(
+
+        state.loading
+
+    ){
+
+        return;
+
+    }
+
+    state.loading = true;
+
+    showSpinner(
+
+        "Opening..."
+
+    );
+
+    try{
+
+        const email = await apiRequest(
+
+            `/api/gmail/email/${id}`
+
+        );
+
+        state.selectedEmail = email;
+
+        renderReader();
+
+        highlightSelectedEmail(id);
+
+    }
+
+    catch(error){
+
+        console.error(
+
+            error
+
+        );
+
+        showToast(
+
+            "Reader",
+
+            "Unable to open email."
+
+        );
+
+    }
+
+    finally{
+
+        state.loading = false;
+
+        hideSpinner();
+
+    }
+
+}
+
+/*==========================================================
+    RENDER READER
 ==========================================================*/
 
 function renderReader(){
 
-    const mail =
+    const email =
 
         state.selectedEmail;
 
-    if(!mail){
+    if(
+
+        !email
+
+    ){
+
+        showEmptyReader();
 
         return;
 
@@ -513,7 +930,7 @@ function renderReader(){
 
     ui.readerTitle.textContent =
 
-        mail.subject;
+        email.subject;
 
     ui.readerBody.innerHTML = `
 
@@ -521,7 +938,7 @@ function renderReader(){
 
             <h1 class="email-subject">
 
-                ${mail.subject}
+                ${escapeHTML(email.subject)}
 
             </h1>
 
@@ -531,7 +948,11 @@ function renderReader(){
 
                     <div class="sender-avatar">
 
-                        ${mail.from.charAt(0)}
+                        ${escapeHTML(
+
+                            email.from.charAt(0)
+
+                        )}
 
                     </div>
 
@@ -539,13 +960,21 @@ function renderReader(){
 
                         <div class="sender-name">
 
-                            ${mail.from}
+                            ${escapeHTML(
+
+                                email.from
+
+                            )}
 
                         </div>
 
                         <div class="sender-email">
 
-                            ${mail.email}
+                            ${escapeHTML(
+
+                                email.to || ""
+
+                            )}
 
                         </div>
 
@@ -555,7 +984,11 @@ function renderReader(){
 
                 <div class="email-date">
 
-                    ${mail.date}
+                    ${escapeHTML(
+
+                        email.date
+
+                    )}
 
                 </div>
 
@@ -565,7 +998,7 @@ function renderReader(){
 
             <div class="email-content">
 
-                ${mail.body}
+                ${email.body}
 
             </div>
 
@@ -579,7 +1012,7 @@ function renderReader(){
     HIGHLIGHT
 ==========================================================*/
 
-function highlightEmail(id){
+function highlightSelectedEmail(id){
 
     document
 
@@ -591,13 +1024,13 @@ function highlightEmail(id){
 
         .forEach(
 
-            card=>
+            card =>
 
-            card.classList.remove(
+                card.classList.remove(
 
-                "active"
+                    "active"
 
-            )
+                )
 
         );
 
@@ -605,11 +1038,17 @@ function highlightEmail(id){
 
         state.filteredEmails.findIndex(
 
-            mail=>mail.id===id
+            email =>
+
+                email.id === id
 
         );
 
-    if(index===-1){
+    if(
+
+        index === -1
+
+    ){
 
         return;
 
@@ -626,216 +1065,42 @@ function highlightEmail(id){
 }
 
 /*==========================================================
-    SEARCH
+    EMPTY READER
 ==========================================================*/
 
-function onSearch(event){
+function showEmptyReader(){
 
-    state.searchQuery =
+    ui.readerTitle.textContent =
 
-        event.target.value
+        "Select an email";
 
-        .trim()
+    ui.readerBody.innerHTML = `
 
-        .toLowerCase();
+        <div class="empty-state">
 
-    state.filteredEmails =
+            <i class="fa-regular fa-envelope-open"></i>
 
-        state.emails.filter(
+            <h2>
 
-            mail=>
+                No email selected
 
-                mail.subject
+            </h2>
 
-                    .toLowerCase()
+            <p>
 
-                    .includes(
+                Choose an email from the inbox.
 
-                        state.searchQuery
+            </p>
 
-                    )
+        </div>
 
-                ||
-
-                mail.from
-
-                    .toLowerCase()
-
-                    .includes(
-
-                        state.searchQuery
-
-                    )
-
-                ||
-
-                mail.preview
-
-                    .toLowerCase()
-
-                    .includes(
-
-                        state.searchQuery
-
-                    )
-
-        );
-
-    renderInbox();
+    `;
 
 }
 
 /*==========================================================
-    SKELETONS
+    PART 6 — COMPOSE ENGINE
 ==========================================================*/
-
-function showSkeletons(){
-
-    ui.emailList.innerHTML = "";
-
-    for(
-
-        let i=0;
-
-        i<8;
-
-        i++
-
-    ){
-
-        const item =
-
-            document.createElement(
-
-                "div"
-
-            );
-
-        item.className =
-
-            "email-placeholder";
-
-        item.innerHTML = `
-
-            <div class="skeleton skeleton-circle"></div>
-
-            <div class="email-placeholder-content">
-
-                <div class="skeleton skeleton-line"></div>
-
-                <div class="skeleton skeleton-line"></div>
-
-            </div>
-
-        `;
-
-        ui.emailList.appendChild(
-
-            item
-
-        );
-
-    }
-
-}
-
-function hideSkeletons(){
-
-}
-
-/*==========================================================
-    PART 3 — COMPOSE ENGINE
-==========================================================*/
-
-/*==========================================================
-    COMPOSE STATE
-==========================================================*/
-
-const compose = {
-
-    to: "",
-
-    cc: "",
-
-    bcc: "",
-
-    subject: "",
-
-    body: "",
-
-    attachments: []
-
-};
-
-/*==========================================================
-    REGISTER EVENTS
-==========================================================*/
-
-function registerComposeEvents(){
-
-    document
-
-        .querySelector(
-
-            ".compose-button"
-
-        )
-
-        ?.addEventListener(
-
-            "click",
-
-            openCompose
-
-        );
-
-    document
-
-        .getElementById(
-
-            "closeCompose"
-
-        )
-
-        ?.addEventListener(
-
-            "click",
-
-            closeCompose
-
-        );
-
-    ui.composeSubject
-
-        ?.addEventListener(
-
-            "input",
-
-            saveDraft
-
-        );
-
-    ui.composeEditor
-
-        ?.addEventListener(
-
-            "input",
-
-            saveDraft
-
-        );
-
-    ui.composeTo
-
-        ?.addEventListener(
-
-            "input",
-
-            saveDraft
-
-        );
-
-}
 
 /*==========================================================
     OPEN
@@ -843,15 +1108,13 @@ function registerComposeEvents(){
 
 function openCompose(){
 
-    state.composeOpen = true;
+    state.compose.open = true;
+
+    state.compose.minimized = false;
 
     ui.composeWindow.classList.remove(
 
-        "hidden"
-
-    );
-
-    ui.composeWindow.classList.remove(
+        "hidden",
 
         "minimized"
 
@@ -873,7 +1136,11 @@ function openCompose(){
 
 function closeCompose(){
 
-    if(hasUnsavedDraft()){
+    if(
+
+        hasDraft()
+
+    ){
 
         showDiscardDialog();
 
@@ -891,27 +1158,31 @@ function closeCompose(){
 
 function resetCompose(){
 
-    state.composeOpen = false;
+    state.compose = {
 
-    state.composeMinimized = false;
+        open: false,
 
-    state.composeMaximized = false;
+        minimized: false,
+
+        maximized: false,
+
+        to: "",
+
+        cc: "",
+
+        bcc: "",
+
+        subject: "",
+
+        body: "",
+
+        attachments: []
+
+    };
 
     ui.composeWindow.className =
 
         "compose-window hidden";
-
-    compose.to = "";
-
-    compose.cc = "";
-
-    compose.bcc = "";
-
-    compose.subject = "";
-
-    compose.body = "";
-
-    compose.attachments = [];
 
     ui.composeTo.value = "";
 
@@ -927,25 +1198,9 @@ function resetCompose(){
 
 function minimizeCompose(){
 
-    state.composeMinimized = true;
+    state.compose.minimized = true;
 
     ui.composeWindow.classList.add(
-
-        "minimized"
-
-    );
-
-}
-
-/*==========================================================
-    RESTORE
-==========================================================*/
-
-function restoreCompose(){
-
-    state.composeMinimized = false;
-
-    ui.composeWindow.classList.remove(
 
         "minimized"
 
@@ -959,9 +1214,9 @@ function restoreCompose(){
 
 function maximizeCompose(){
 
-    state.composeMaximized =
+    state.compose.maximized =
 
-        !state.composeMaximized;
+        !state.compose.maximized;
 
     ui.composeWindow.classList.toggle(
 
@@ -972,405 +1227,51 @@ function maximizeCompose(){
 }
 
 /*==========================================================
-    DRAFT
+    SAVE DRAFT
 ==========================================================*/
 
 function saveDraft(){
 
-    compose.to =
+    state.compose.to =
 
         ui.composeTo.value;
 
-    compose.subject =
+    state.compose.subject =
 
         ui.composeSubject.value;
 
-    compose.body =
+    state.compose.body =
 
         ui.composeEditor.innerHTML;
 
-    updateDraftIndicator(
-
-        "Saving..."
-
-    );
-
-    clearTimeout(
-
-        saveDraft.timer
-
-    );
-
-    saveDraft.timer =
-
-        setTimeout(
-
-            ()=>{
-
-                updateDraftIndicator(
-
-                    "Saved"
-
-                );
-
-            },
-
-            600
-
-        );
-
 }
 
 /*==========================================================
-    DRAFT STATUS
+    HAS DRAFT
 ==========================================================*/
 
-function updateDraftIndicator(text){
-
-    const label =
-
-        document.querySelector(
-
-            ".draft-status span"
-
-        );
-
-    if(label){
-
-        label.textContent = text;
-
-    }
-
-}
-
-/*==========================================================
-    CHECK DRAFT
-==========================================================*/
-
-function hasUnsavedDraft(){
+function hasDraft(){
 
     return(
 
-        compose.to ||
+        state.compose.to ||
 
-        compose.subject ||
+        state.compose.subject ||
 
-        compose.body ||
+        state.compose.body ||
 
-        compose.attachments.length
-
-    );
-
-}
-
-/*==========================================================
-    ATTACHMENTS
-==========================================================*/
-
-function addAttachment(file){
-
-    compose.attachments.push(
-
-        file
+        state.compose.attachments.length
 
     );
 
-    renderAttachments();
-
-}
-
-function removeAttachment(index){
-
-    compose.attachments.splice(
-
-        index,
-
-        1
-
-    );
-
-    renderAttachments();
-
-}
-
-function renderAttachments(){
-
-    const container =
-
-        document.querySelector(
-
-            ".compose-attachments"
-
-        );
-
-    container.innerHTML = "";
-
-    compose.attachments.forEach(
-
-        (file,index)=>{
-
-            const card =
-
-                document.createElement(
-
-                    "div"
-
-                );
-
-            card.className =
-
-                "attachment-card";
-
-            card.innerHTML = `
-
-                <div class="attachment-icon">
-
-                    <i class="fa-solid fa-file"></i>
-
-                </div>
-
-                <div class="attachment-info">
-
-                    <div class="attachment-name">
-
-                        ${file.name}
-
-                    </div>
-
-                    <div class="attachment-size">
-
-                        ${(file.size/1024).toFixed(1)} KB
-
-                    </div>
-
-                </div>
-
-                <div class="attachment-remove">
-
-                    <i class="fa-solid fa-xmark"></i>
-
-                </div>
-
-            `;
-
-            card
-
-                .querySelector(
-
-                    ".attachment-remove"
-
-                )
-
-                .addEventListener(
-
-                    "click",
-
-                    ()=>{
-
-                        removeAttachment(
-
-                            index
-
-                        );
-
-                    }
-
-                );
-
-            container.appendChild(
-
-                card
-
-            );
-
-        }
-
-    );
-
 }
 
 /*==========================================================
-    SEND
-==========================================================*/
-
-async function sendEmail(){
-
-    if(
-
-        compose.to.trim()===""
-
-    ){
-
-        showToast(
-
-            "Compose",
-
-            "Recipient required."
-
-        );
-
-        return;
-
-    }
-
-    showSpinner(
-
-        "Sending..."
-
-    );
-
-    try{
-
-        await fetch(
-
-            "/api/send",
-
-            {
-
-                method:"POST",
-
-                headers:{
-
-                    "Content-Type":"application/json"
-
-                },
-
-                body:JSON.stringify(
-
-                    compose
-
-                )
-
-            }
-
-        );
-
-        hideSpinner();
-
-        showToast(
-
-            "Sent",
-
-            "Email sent successfully."
-
-        );
-
-        resetCompose();
-
-    }
-
-    catch(error){
-
-        hideSpinner();
-
-        showToast(
-
-            "Failed",
-
-            "Unable to send email."
-
-        );
-
-    }
-
-}
-
-/*==========================================================
-    PART 4 — SETTINGS ENGINE
+    PART 7 — SETTINGS ENGINE
 ==========================================================*/
 
 /*==========================================================
-    SETTINGS STATE
-==========================================================*/
-
-const settings = {
-
-    appearance: "dark",
-
-    accent: "sapphire",
-
-    notifications: true,
-
-    shortcuts: true,
-
-    autoSave: true
-
-};
-
-/*==========================================================
-    REGISTER EVENTS
-==========================================================*/
-
-function registerSettingsEvents(){
-
-    document
-
-        .getElementById(
-
-            "openSettings"
-
-        )
-
-        ?.addEventListener(
-
-            "click",
-
-            openSettings
-
-        );
-
-    document
-
-        .getElementById(
-
-            "settingsBackButton"
-
-        )
-
-        ?.addEventListener(
-
-            "click",
-
-            closeSettings
-
-        );
-
-    document
-
-        .querySelectorAll(
-
-            ".settings-item"
-
-        )
-
-        .forEach(
-
-            item=>{
-
-                item.addEventListener(
-
-                    "click",
-
-                    ()=>{
-
-                        changeSettingsPage(
-
-                            item.dataset.page
-
-                        );
-
-                    }
-
-                );
-
-            }
-
-        );
-
-}
-
-/*==========================================================
-    OPEN
+    OPEN SETTINGS
 ==========================================================*/
 
 function openSettings(){
@@ -1386,7 +1287,7 @@ function openSettings(){
 }
 
 /*==========================================================
-    CLOSE
+    CLOSE SETTINGS
 ==========================================================*/
 
 function closeSettings(){
@@ -1405,7 +1306,7 @@ function closeSettings(){
 
 function changeSettingsPage(page){
 
-    state.settingsPage = page;
+    state.settings.page = page;
 
     document
 
@@ -1417,17 +1318,15 @@ function changeSettingsPage(page){
 
         .forEach(
 
-            item=>{
+            item =>
 
                 item.classList.toggle(
 
                     "active",
 
-                    item.dataset.page===page
+                    item.dataset.page === page
 
-                );
-
-            }
+                )
 
         );
 
@@ -1436,50 +1335,50 @@ function changeSettingsPage(page){
 }
 
 /*==========================================================
-    RENDER
+    RENDER SETTINGS
 ==========================================================*/
 
 function renderSettings(){
 
     switch(
 
-        state.settingsPage
+        state.settings.page
 
     ){
 
         case "general":
 
-            renderGeneral();
+            renderGeneralSettings();
 
             break;
 
         case "appearance":
 
-            renderAppearance();
+            renderAppearanceSettings();
 
             break;
 
         case "accounts":
 
-            renderAccounts();
+            renderAccountSettings();
 
             break;
 
         case "notifications":
 
-            renderNotifications();
+            renderNotificationSettings();
 
             break;
 
         case "shortcuts":
 
-            renderShortcuts();
+            renderShortcutSettings();
 
             break;
 
         case "about":
 
-            renderAbout();
+            renderAboutSettings();
 
             break;
 
@@ -1488,587 +1387,11 @@ function renderSettings(){
 }
 
 /*==========================================================
-    GENERAL
-==========================================================*/
-
-function renderGeneral(){
-
-    ui.settingsContent.innerHTML = `
-
-        <h1 class="settings-title">
-
-            General
-
-        </h1>
-
-        <div class="settings-group">
-
-            <div class="settings-card">
-
-                <div class="setting-row">
-
-                    <div class="setting-info">
-
-                        <div class="setting-name">
-
-                            Auto Save Drafts
-
-                        </div>
-
-                        <div class="setting-description">
-
-                            Automatically save drafts.
-
-                        </div>
-
-                    </div>
-
-                    <div class="switch ${settings.autoSave ? "active" : ""}"></div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    `;
-
-}
-
-/*==========================================================
-    APPEARANCE
-==========================================================*/
-
-function renderAppearance(){
-
-    ui.settingsContent.innerHTML = `
-
-        <h1 class="settings-title">
-
-            Appearance
-
-        </h1>
-
-        <div class="settings-group">
-
-            <div class="settings-card">
-
-                <div class="setting-row">
-
-                    <div class="setting-info">
-
-                        <div class="setting-name">
-
-                            Accent Color
-
-                        </div>
-
-                    </div>
-
-                    <div class="accent-picker">
-
-                        <div class="accent sapphire"></div>
-
-                        <div class="accent nebula"></div>
-
-                        <div class="accent crimson"></div>
-
-                        <div class="accent graphite"></div>
-
-                        <div class="accent arctic"></div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    `;
-
-}
-
-/*==========================================================
-    ACCOUNTS
-==========================================================*/
-
-function renderAccounts(){
-
-    ui.settingsContent.innerHTML = `
-
-        <h1 class="settings-title">
-
-            Accounts
-
-        </h1>
-
-        <div class="settings-group">
-
-            <div class="settings-card">
-
-                <div class="setting-row">
-
-                    <div class="setting-info">
-
-                        <div class="setting-name">
-
-                            Gmail
-
-                        </div>
-
-                        <div class="setting-description">
-
-                            Connected account.
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    `;
-
-}
-
-/*==========================================================
-    NOTIFICATIONS
-==========================================================*/
-
-function renderNotifications(){
-
-    ui.settingsContent.innerHTML = `
-
-        <h1 class="settings-title">
-
-            Notifications
-
-        </h1>
-
-        <div class="settings-group">
-
-            <div class="settings-card">
-
-                <div class="setting-row">
-
-                    <div class="setting-info">
-
-                        <div class="setting-name">
-
-                            Desktop Notifications
-
-                        </div>
-
-                    </div>
-
-                    <div class="switch ${settings.notifications ? "active" : ""}"></div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    `;
-
-}
-
-/*==========================================================
-    SHORTCUTS
-==========================================================*/
-
-function renderShortcuts(){
-
-    ui.settingsContent.innerHTML = `
-
-        <h1 class="settings-title">
-
-            Keyboard Shortcuts
-
-        </h1>
-
-        <div class="settings-group">
-
-            <div class="settings-card">
-
-                <div class="setting-row">
-
-                    <div class="setting-info">
-
-                        <div class="setting-name">
-
-                            Enable Shortcuts
-
-                        </div>
-
-                    </div>
-
-                    <div class="switch ${settings.shortcuts ? "active" : ""}"></div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    `;
-
-}
-
-/*==========================================================
-    ABOUT
-==========================================================*/
-
-function renderAbout(){
-
-    ui.settingsContent.innerHTML = `
-
-        <div class="about-logo">
-
-            CW
-
-        </div>
-
-        <div class="about-name">
-
-            CosmiMail
-
-        </div>
-
-        <div class="about-version">
-
-            Version 2.0 Alpha
-
-        </div>
-
-        <div class="about-company">
-
-            Built by Cosmiway Labs
-
-        </div>
-
-        <div class="about-footer">
-
-            © 2026 Cosmiway Labs
-
-        </div>
-
-    `;
-
-}
-
-/*==========================================================
-    PART 5 — MENUS, DIALOGS & FLOATING UI
+    PART 8 — DIALOGS, TOASTS & FLOATING UI
 ==========================================================*/
 
 /*==========================================================
-    MENU STATE
-==========================================================*/
-
-const menu = {
-
-    active: null
-
-};
-
-/*==========================================================
-    REGISTER EVENTS
-==========================================================*/
-
-function registerMenuEvents(){
-
-    document.addEventListener(
-
-        "click",
-
-        closeAllMenus
-
-    );
-
-    document.addEventListener(
-
-        "contextmenu",
-
-        openContextMenu
-
-    );
-
-    document.addEventListener(
-
-        "keydown",
-
-        event=>{
-
-            if(event.key==="Escape"){
-
-                closeAllMenus();
-
-                closeDialog();
-
-            }
-
-        }
-
-    );
-
-}
-
-/*==========================================================
-    CONTEXT MENU
-==========================================================*/
-
-function openContextMenu(event){
-
-    const card =
-
-        event.target.closest(
-
-            ".mail-item"
-
-        );
-
-    if(!card){
-
-        return;
-
-    }
-
-    event.preventDefault();
-
-    menu.active = ui.contextMenu;
-
-    ui.contextMenu.style.left =
-
-        `${event.clientX}px`;
-
-    ui.contextMenu.style.top =
-
-        `${event.clientY}px`;
-
-    ui.contextMenu.classList.remove(
-
-        "hidden"
-
-    );
-
-}
-
-function closeAllMenus(){
-
-    document
-
-        .querySelectorAll(
-
-            ".menu"
-
-        )
-
-        .forEach(
-
-            menu=>{
-
-                menu.classList.add(
-
-                    "hidden"
-
-                );
-
-            }
-
-        );
-
-}
-
-/*==========================================================
-    PROFILE MENU
-==========================================================*/
-
-function toggleProfileMenu(){
-
-    const hidden =
-
-        ui.profileMenu.classList.contains(
-
-            "hidden"
-
-        );
-
-    closeAllMenus();
-
-    if(hidden){
-
-        ui.profileMenu.classList.remove(
-
-            "hidden"
-
-        );
-
-    }
-
-}
-
-/*==========================================================
-    DIALOG
-==========================================================*/
-
-function showDialog({
-
-    title,
-
-    subtitle,
-
-    confirmText="Continue",
-
-    cancelText="Cancel",
-
-    confirmAction=null
-
-}){
-
-    document.getElementById(
-
-        "dialogTitle"
-
-    ).textContent = title;
-
-    document.getElementById(
-
-        "dialogSubtitle"
-
-    ).textContent = subtitle;
-
-    document.getElementById(
-
-        "dialogConfirm"
-
-    ).textContent = confirmText;
-
-    document.getElementById(
-
-        "dialogCancel"
-
-    ).textContent = cancelText;
-
-    ui.dialog.classList.add(
-
-        "show"
-
-    );
-
-    const confirm =
-
-        document.getElementById(
-
-            "dialogConfirm"
-
-        );
-
-    confirm.onclick = ()=>{
-
-        closeDialog();
-
-        if(confirmAction){
-
-            confirmAction();
-
-        }
-
-    };
-
-}
-
-function closeDialog(){
-
-    ui.dialog.classList.remove(
-
-        "show"
-
-    );
-
-}
-
-/*==========================================================
-    COMMON DIALOGS
-==========================================================*/
-
-function showDiscardDialog(){
-
-    showDialog({
-
-        title:
-
-            "Discard draft?",
-
-        subtitle:
-
-            "Your unsaved changes will be lost.",
-
-        confirmText:
-
-            "Discard",
-
-        confirmAction:
-
-            resetCompose
-
-    });
-
-}
-
-function showDeleteDialog(callback){
-
-    showDialog({
-
-        title:
-
-            "Delete email?",
-
-        subtitle:
-
-            "This email will be moved to Trash.",
-
-        confirmText:
-
-            "Delete",
-
-        confirmAction:
-
-            callback
-
-    });
-
-}
-
-function showSignOutDialog(){
-
-    showDialog({
-
-        title:
-
-            "Sign out?",
-
-        subtitle:
-
-            "You'll need to sign in again.",
-
-        confirmText:
-
-            "Sign Out",
-
-        confirmAction:
-
-            signOut
-
-    });
-
-}
-
-/*==========================================================
-    TOASTS
+    TOAST
 ==========================================================*/
 
 let toastTimer = null;
@@ -2105,2343 +1428,264 @@ function showToast(
 
     );
 
-    toastTimer =
+    toastTimer = setTimeout(
 
-        setTimeout(
+        hideToast,
 
-            ()=>{
-
-                ui.toast.classList.remove(
-
-                    "show"
-
-                );
-
-            },
-
-            2600
-
-        );
-
-}
-
-/*==========================================================
-    TOOLTIPS
-==========================================================*/
-
-function attachTooltips(){
-
-    document
-
-        .querySelectorAll(
-
-            "[title]"
-
-        )
-
-        .forEach(
-
-            element=>{
-
-                element.addEventListener(
-
-                    "mouseenter",
-
-                    ()=>{
-
-                        /* Future tooltip */
-
-                    }
-
-                );
-
-            }
-
-        );
-
-}
-
-/*==========================================================
-    PART 6 — KEYBOARD SHORTCUTS & APP CONTROLLER
-==========================================================*/
-
-/*==========================================================
-    APP CONTROLLER
-==========================================================*/
-
-function initializeControllers(){
-
-    registerComposeEvents();
-
-    registerSettingsEvents();
-
-    registerMenuEvents();
-
-    registerKeyboardShortcuts();
-
-}
-
-/*==========================================================
-    FOLDER NAVIGATION
-==========================================================*/
-
-function switchFolder(folder){
-
-    if(
-
-        state.currentFolder===folder
-
-    ){
-
-        return;
-
-    }
-
-    state.currentFolder=folder;
-
-    document
-
-        .querySelectorAll(
-
-            ".sidebar-item"
-
-        )
-
-        .forEach(
-
-            item=>{
-
-                item.classList.remove(
-
-                    "active"
-
-                );
-
-            }
-
-        );
-
-    document
-
-        .querySelector(
-
-            `[data-folder="${folder}"]`
-
-        )
-
-        ?.classList.add(
-
-            "active"
-
-        );
-
-    showSpinner(
-
-        "Loading folder..."
+        CONFIG.toastDuration
 
     );
 
-    loadFolder(folder);
-
 }
 
-async function loadFolder(folder){
+function hideToast(){
 
-    try{
-
-        const response=
-
-            await fetch(
-
-                `/api/folder/${folder}`
-
-            );
-
-        if(!response.ok){
-
-            throw new Error();
-
-        }
-
-        state.emails=
-
-            await response.json();
-
-        state.filteredEmails=[
-
-            ...state.emails
-
-        ];
-
-        renderInbox();
-
-    }
-
-    catch(error){
-
-        showToast(
-
-            "Folder",
-
-            "Unable to load folder."
-
-        );
-
-    }
-
-    finally{
-
-        hideSpinner();
-
-    }
-
-}
-
-/*==========================================================
-    REFRESH
-==========================================================*/
-
-async function refreshInbox(){
-
-    showSpinner(
-
-        "Refreshing..."
-
-    );
-
-    await loadInbox();
-
-    hideSpinner();
-
-}
-
-/*==========================================================
-    KEYBOARD SHORTCUTS
-==========================================================*/
-
-function registerKeyboardShortcuts(){
-
-    document.addEventListener(
-
-        "keydown",
-
-        handleKeyboardShortcut
-
-    );
-
-}
-
-function handleKeyboardShortcut(event){
-
-    const key=
-
-        event.key.toLowerCase();
-
-    const ctrl=
-
-        event.ctrlKey||
-
-        event.metaKey;
-
-    if(
-
-        ctrl&&
-
-        key==="n"
-
-    ){
-
-        event.preventDefault();
-
-        openCompose();
-
-        return;
-
-    }
-
-    if(
-
-        ctrl&&
-
-        key==="f"
-
-    ){
-
-        event.preventDefault();
-
-        ui.searchInput.focus();
-
-        ui.searchInput.select();
-
-        return;
-
-    }
-
-    if(
-
-        ctrl&&
-
-        key==="r"
-
-    ){
-
-        event.preventDefault();
-
-        refreshInbox();
-
-        return;
-
-    }
-
-    if(
-
-        ctrl&&
-
-        key==="."
-
-    ){
-
-        event.preventDefault();
-
-        openSettings();
-
-        return;
-
-    }
-
-    if(
-
-        key==="escape"
-
-    ){
-
-        if(
-
-            state.composeOpen
-
-        ){
-
-            closeCompose();
-
-        }
-
-        closeDialog();
-
-        closeAllMenus();
-
-        return;
-
-    }
-
-    if(
-
-        key==="delete"
-
-    ){
-
-        if(
-
-            state.selectedEmail
-
-        ){
-
-            showDeleteDialog(
-
-                ()=>{
-
-                    deleteCurrentEmail();
-
-                }
-
-            );
-
-        }
-
-    }
-
-}
-
-/*==========================================================
-    EMAIL ACTIONS
-==========================================================*/
-
-function deleteCurrentEmail(){
-
-    if(
-
-        !state.selectedEmail
-
-    ){
-
-        return;
-
-    }
-
-    const id=
-
-        state.selectedEmail.id;
-
-    state.emails=
-
-        state.emails.filter(
-
-            mail=>mail.id!==id
-
-        );
-
-    state.filteredEmails=
-
-        state.filteredEmails.filter(
-
-            mail=>mail.id!==id
-
-        );
-
-    state.selectedEmail=null;
-
-    renderInbox();
-
-    ui.readerBody.innerHTML=`
-
-        <div class="empty-state">
-
-            <h2>
-
-                No email selected
-
-            </h2>
-
-            <p>
-
-                Select an email from the inbox.
-
-            </p>
-
-        </div>
-
-    `;
-
-    showToast(
-
-        "Deleted",
-
-        "Email moved to Trash."
-
-    );
-
-}
-
-function archiveCurrentEmail(){
-
-    if(
-
-        !state.selectedEmail
-
-    ){
-
-        return;
-
-    }
-
-    showToast(
-
-        "Archived",
-
-        "Email archived."
-
-    );
-
-}
-
-function starCurrentEmail(){
-
-    if(
-
-        !state.selectedEmail
-
-    ){
-
-        return;
-
-    }
-
-    state.selectedEmail.starred=
-
-        !state.selectedEmail.starred;
-
-    showToast(
-
-        state.selectedEmail.starred
-
-            ? "Starred"
-
-            : "Unstarred",
-
-        state.selectedEmail.starred
-
-            ? "Added to Starred."
-
-            : "Removed from Starred."
-
-    );
-
-}
-
-/*==========================================================
-    SIGN OUT
-==========================================================*/
-
-function signOut(){
-
-    showSpinner(
-
-        "Signing out..."
-
-    );
-
-    setTimeout(
-
-        ()=>{
-
-            hideSpinner();
-
-            window.location.href="/logout";
-
-        },
-
-        800
-
-    );
-
-}
-
-/*==========================================================
-    START EVERYTHING
-==========================================================*/
-
-initializeControllers();
-
-/*==========================================================
-    PART 7 — FLASK API & GMAIL BRIDGE
-==========================================================*/
-
-/*==========================================================
-    API
-==========================================================*/
-
-const api = {
-
-    base: "https://starfielddatabase.pythonanywhere.com"
-
-};
-
-/*==========================================================
-    REQUEST
-==========================================================*/
-
-async function apiRequest(
-
-    endpoint,
-
-    options={}
-
-){
-
-    const response=
-
-        await fetch(
-
-            api.base+endpoint,
-
-            {
-
-                headers:{
-
-                    "Content-Type":
-
-                        "application/json"
-
-                },
-
-                credentials:
-
-                    "include",
-
-                ...options
-
-            }
-
-        );
-
-    if(
-
-        !response.ok
-
-    ){
-
-        throw new Error(
-
-            response.statusText
-
-        );
-
-    }
-
-    return await response.json();
-
-}
-
-/*==========================================================
-    ACCOUNT
-==========================================================*/
-
-async function loadAccount(){
-
-    try{
-
-        const account=
-
-            await apiRequest(
-
-                "/api/account"
-
-            );
-
-        state.currentUser=
-
-            account;
-
-        updateProfile(
-
-            account
-
-        );
-
-    }
-
-    catch(error){
-
-        console.error(
-
-            error
-
-        );
-
-    }
-
-}
-
-function updateProfile(
-
-    account
-
-){
-
-    document.querySelector(
-
-        ".profile-name"
-
-    ).textContent=
-
-        account.name;
-
-    document.querySelector(
-
-        ".profile-email"
-
-    ).textContent=
-
-        account.email;
-
-}
-
-/*==========================================================
-    GMAIL
-==========================================================*/
-
-async function syncInbox(){
-
-    showSpinner(
-
-        "Syncing Gmail..."
-
-    );
-
-    try{
-
-        await apiRequest(
-
-            "/api/sync",
-
-            {
-
-                method:"POST"
-
-            }
-
-        );
-
-        await loadInbox();
-
-        showToast(
-
-            "Synced",
-
-            "Inbox updated."
-
-        );
-
-    }
-
-    catch(error){
-
-        showToast(
-
-            "Sync Failed",
-
-            "Unable to reach Gmail."
-
-        );
-
-    }
-
-    finally{
-
-        hideSpinner();
-
-    }
-
-}
-
-/*==========================================================
-    SEND
-==========================================================*/
-
-async function sendCurrentEmail(){
-
-    showSpinner(
-
-        "Sending..."
-
-    );
-
-    try{
-
-        await apiRequest(
-
-            "/api/send",
-
-            {
-
-                method:"POST",
-
-                body:JSON.stringify({
-
-                    to:
-
-                        compose.to,
-
-                    cc:
-
-                        compose.cc,
-
-                    bcc:
-
-                        compose.bcc,
-
-                    subject:
-
-                        compose.subject,
-
-                    body:
-
-                        compose.body
-
-                })
-
-            }
-
-        );
-
-        hideSpinner();
-
-        showToast(
-
-            "Email Sent",
-
-            "Message delivered."
-
-        );
-
-        resetCompose();
-
-    }
-
-    catch(error){
-
-        hideSpinner();
-
-        showToast(
-
-            "Send Failed",
-
-            "Unable to send email."
-
-        );
-
-    }
-
-}
-
-/*==========================================================
-    DELETE
-==========================================================*/
-
-async function deleteEmail(
-
-    id
-
-){
-
-    await apiRequest(
-
-        `/api/email/${id}`,
-
-        {
-
-            method:"DELETE"
-
-        }
-
-    );
-
-}
-
-/*==========================================================
-    STAR
-==========================================================*/
-
-async function toggleStar(
-
-    id
-
-){
-
-    await apiRequest(
-
-        `/api/email/${id}/star`,
-
-        {
-
-            method:"POST"
-
-        }
-
-    );
-
-}
-
-/*==========================================================
-    ARCHIVE
-==========================================================*/
-
-async function archiveEmail(
-
-    id
-
-){
-
-    await apiRequest(
-
-        `/api/email/${id}/archive`,
-
-        {
-
-            method:"POST"
-
-        }
-
-    );
-
-}
-
-/*==========================================================
-    MARK READ
-==========================================================*/
-
-async function markRead(
-
-    id
-
-){
-
-    await apiRequest(
-
-        `/api/email/${id}/read`,
-
-        {
-
-            method:"POST"
-
-        }
-
-    );
-
-}
-
-/*==========================================================
-    DRAFT
-==========================================================*/
-
-async function saveDraftRemote(){
-
-    await apiRequest(
-
-        "/api/draft",
-
-        {
-
-            method:"POST",
-
-            body:JSON.stringify(
-
-                compose
-
-            )
-
-        }
-
-    );
-
-}
-
-/*==========================================================
-    ATTACHMENTS
-==========================================================*/
-
-async function uploadAttachment(
-
-    file
-
-){
-
-    const form=
-
-        new FormData();
-
-    form.append(
-
-        "file",
-
-        file
-
-    );
-
-    const response=
-
-        await fetch(
-
-            "/api/upload",
-
-            {
-
-                method:"POST",
-
-                body:form
-
-            }
-
-        );
-
-    return await response.json();
-
-}
-
-/*==========================================================
-    CONNECTION
-==========================================================*/
-
-async function pingServer(){
-
-    try{
-
-        await apiRequest(
-
-            "/api/ping"
-
-        );
-
-    }
-
-    catch(error){
-
-        showToast(
-
-            "Offline",
-
-            "Server unavailable."
-
-        );
-
-    }
-
-}
-
-/*==========================================================
-    PART 8 — ACCOUNT & MAIL PROVIDER
-==========================================================*/
-
-/*==========================================================
-    ACCOUNT
-==========================================================*/
-
-async function loadAccount(){
-
-    try{
-
-        const response=
-
-            await apiRequest(
-
-                "/api/me"
-
-            );
-
-        state.currentUser={
-
-            name:response.name,
-
-            email:response.email,
-
-            loggedIn:response.logged_in
-
-        };
-
-        renderCurrentUser();
-
-    }
-
-    catch(error){
-
-        console.error(
-
-            error
-
-        );
-
-        showToast(
-
-            "Account",
-
-            "Not signed in."
-
-        );
-
-    }
-
-}
-
-/*==========================================================
-    PROFILE
-==========================================================*/
-
-function renderCurrentUser(){
-
-    if(
-
-        !state.currentUser
-
-    ){
-
-        return;
-
-    }
-
-    document.querySelector(
-
-        ".profile-name"
-
-    ).textContent=
-
-        state.currentUser.name;
-
-    document.querySelector(
-
-        ".profile-email"
-
-    ).textContent=
-
-        state.currentUser.email;
-
-}
-
-/*==========================================================
-    PROVIDER
-==========================================================*/
-
-const provider={
-
-    current:"gmail"
-
-};
-
-/*==========================================================
-    LOAD MAIL
-==========================================================*/
-
-async function loadFolder(folder){
-
-    showSpinner(
-
-        "Loading..."
-
-    );
-
-    try{
-
-        switch(
-
-            provider.current
-
-        ){
-
-            case "gmail":
-
-                await loadGmailFolder(
-
-                    folder
-
-                );
-
-                break;
-
-            default:
-
-                throw new Error(
-
-                    "Unsupported provider."
-
-                );
-
-        }
-
-    }
-
-    finally{
-
-        hideSpinner();
-
-    }
-
-}
-
-/*==========================================================
-    GMAIL
-==========================================================*/
-
-async function loadGmailFolder(folder){
-
-    let label="INBOX";
-
-    switch(folder){
-
-        case "inbox":
-
-            label="INBOX";
-
-            break;
-
-        case "sent":
-
-            label="SENT";
-
-            break;
-
-        case "trash":
-
-            label="TRASH";
-
-            break;
-
-        case "starred":
-
-            label="STARRED";
-
-            break;
-
-    }
-
-    const response=
-
-        await apiRequest(
-
-            `/api/gmail/messages?label=${label}`
-
-        );
-
-    state.emails=
-
-        response.emails;
-
-    state.filteredEmails=[
-
-        ...state.emails
-
-    ];
-
-    renderInbox();
-
-}
-
-/*==========================================================
-    OPEN EMAIL
-==========================================================*/
-
-async function openEmail(id){
-
-    showSpinner(
-
-        "Opening..."
-
-    );
-
-    try{
-
-        const mail=
-
-            await apiRequest(
-
-                `/api/gmail/email/${id}`
-
-            );
-
-        state.selectedEmail=
-
-            mail;
-
-        renderReader();
-
-    }
-
-    finally{
-
-        hideSpinner();
-
-    }
-
-}
-
-/*==========================================================
-    LABELS
-==========================================================*/
-
-async function loadLabels(){
-
-    try{
-
-        const labels=
-
-            await apiRequest(
-
-                "/api/gmail/labels"
-
-            );
-
-        state.labels=
-
-            labels;
-
-    }
-
-    catch(error){
-
-        console.error(
-
-            error
-
-        );
-
-    }
-
-}
-
-/*==========================================================
-    REFRESH
-==========================================================*/
-
-async function refreshInbox(){
-
-    await loadFolder(
-
-        state.currentFolder
-
-    );
-
-}
-
-/*==========================================================
-    FUTURE
-==========================================================*/
-
-/*
-
-Future providers:
-
-provider.current="outlook"
-
-provider.current="yahoo"
-
-provider.current="icloud"
-
-Nothing else in the UI changes.
-
-Only these provider
-functions.
-
-*/
-
-/*==========================================================
-    PART 9 — RICH TEXT EDITOR
-==========================================================*/
-
-/*==========================================================
-    EDITOR
-==========================================================*/
-
-const editor={
-
-    element:null,
-
-    selection:null
-
-};
-
-/*==========================================================
-    INITIALIZE
-==========================================================*/
-
-function initializeEditor(){
-
-    editor.element=
-
-        ui.composeEditor;
-
-    if(!editor.element){
-
-        return;
-
-    }
-
-    editor.element.addEventListener(
-
-        "mouseup",
-
-        rememberSelection
-
-    );
-
-    editor.element.addEventListener(
-
-        "keyup",
-
-        rememberSelection
-
-    );
-
-    editor.element.addEventListener(
-
-        "paste",
-
-        handlePaste
-
-    );
-
-    editor.element.addEventListener(
-
-        "drop",
-
-        handleDrop
-
-    );
-
-    editor.element.addEventListener(
-
-        "dragover",
-
-        event=>{
-
-            event.preventDefault();
-
-        }
-
-    );
-
-}
-
-/*==========================================================
-    SELECTION
-==========================================================*/
-
-function rememberSelection(){
-
-    const selection=
-
-        window.getSelection();
-
-    if(
-
-        selection.rangeCount
-
-    ){
-
-        editor.selection=
-
-            selection.getRangeAt(0);
-
-    }
-
-}
-
-function restoreSelection(){
-
-    if(
-
-        !editor.selection
-
-    ){
-
-        return;
-
-    }
-
-    const selection=
-
-        window.getSelection();
-
-    selection.removeAllRanges();
-
-    selection.addRange(
-
-        editor.selection
-
-    );
-
-}
-
-/*==========================================================
-    FORMAT
-==========================================================*/
-
-function applyFormat(command,value=null){
-
-    restoreSelection();
-
-    document.execCommand(
-
-        command,
-
-        false,
-
-        value
-
-    );
-
-    rememberSelection();
-
-    ui.composeEditor.focus();
-
-}
-
-/*==========================================================
-    COMMON ACTIONS
-==========================================================*/
-
-function bold(){
-
-    applyFormat(
-
-        "bold"
-
-    );
-
-}
-
-function italic(){
-
-    applyFormat(
-
-        "italic"
-
-    );
-
-}
-
-function underline(){
-
-    applyFormat(
-
-        "underline"
-
-    );
-
-}
-
-function strike(){
-
-    applyFormat(
-
-        "strikeThrough"
-
-    );
-
-}
-
-function orderedList(){
-
-    applyFormat(
-
-        "insertOrderedList"
-
-    );
-
-}
-
-function unorderedList(){
-
-    applyFormat(
-
-        "insertUnorderedList"
-
-    );
-
-}
-
-/*==========================================================
-    ALIGNMENT
-==========================================================*/
-
-function alignLeft(){
-
-    applyFormat(
-
-        "justifyLeft"
-
-    );
-
-}
-
-function alignCenter(){
-
-    applyFormat(
-
-        "justifyCenter"
-
-    );
-
-}
-
-function alignRight(){
-
-    applyFormat(
-
-        "justifyRight"
-
-    );
-
-}
-
-/*==========================================================
-    LINK
-==========================================================*/
-
-function insertLink(){
-
-    const url=
-
-        prompt(
-
-            "Enter URL"
-
-        );
-
-    if(
-
-        !url
-
-    ){
-
-        return;
-
-    }
-
-    applyFormat(
-
-        "createLink",
-
-        url
-
-    );
-
-}
-
-/*==========================================================
-    IMAGE
-==========================================================*/
-
-function insertImage(){
-
-    const url=
-
-        prompt(
-
-            "Image URL"
-
-        );
-
-    if(
-
-        !url
-
-    ){
-
-        return;
-
-    }
-
-    applyFormat(
-
-        "insertImage",
-
-        url
-
-    );
-
-}
-
-/*==========================================================
-    CLEAR
-==========================================================*/
-
-function clearFormatting(){
-
-    applyFormat(
-
-        "removeFormat"
-
-    );
-
-}
-
-/*==========================================================
-    PASTE
-==========================================================*/
-
-function handlePaste(event){
-
-    const items=
-
-        event.clipboardData.items;
-
-    for(
-
-        const item of items
-
-    ){
-
-        if(
-
-            item.type.startsWith(
-
-                "image"
-
-            )
-
-        ){
-
-            const file=
-
-                item.getAsFile();
-
-            addAttachment(
-
-                file
-
-            );
-
-        }
-
-    }
-
-}
-
-/*==========================================================
-    DROP
-==========================================================*/
-
-function handleDrop(event){
-
-    event.preventDefault();
-
-    for(
-
-        const file
-
-        of
-
-        event.dataTransfer.files
-
-    ){
-
-        addAttachment(
-
-            file
-
-        );
-
-    }
-
-}
-
-/*==========================================================
-    TOOLBAR
-==========================================================*/
-
-function registerToolbar(){
-
-    document
-
-        .querySelectorAll(
-
-            "[data-command]"
-
-        )
-
-        .forEach(
-
-            button=>{
-
-                button.addEventListener(
-
-                    "click",
-
-                    ()=>{
-
-                        const cmd=
-
-                            button.dataset.command;
-
-                        switch(cmd){
-
-                            case"bold":
-
-                                bold();
-
-                                break;
-
-                            case"italic":
-
-                                italic();
-
-                                break;
-
-                            case"underline":
-
-                                underline();
-
-                                break;
-
-                            case"strike":
-
-                                strike();
-
-                                break;
-
-                            case"ordered":
-
-                                orderedList();
-
-                                break;
-
-                            case"unordered":
-
-                                unorderedList();
-
-                                break;
-
-                            case"left":
-
-                                alignLeft();
-
-                                break;
-
-                            case"center":
-
-                                alignCenter();
-
-                                break;
-
-                            case"right":
-
-                                alignRight();
-
-                                break;
-
-                            case"link":
-
-                                insertLink();
-
-                                break;
-
-                            case"image":
-
-                                insertImage();
-
-                                break;
-
-                            case"clear":
-
-                                clearFormatting();
-
-                                break;
-
-                        }
-
-                    }
-
-                );
-
-            }
-
-        );
-
-}
-
-/*==========================================================
-    SHORTCUTS
-==========================================================*/
-
-document.addEventListener(
-
-    "keydown",
-
-    event=>{
-
-        if(
-
-            !state.composeOpen
-
-        ){
-
-            return;
-
-        }
-
-        const ctrl=
-
-            event.ctrlKey||
-
-            event.metaKey;
-
-        if(
-
-            !ctrl
-
-        ){
-
-            return;
-
-        }
-
-        switch(
-
-            event.key.toLowerCase()
-
-        ){
-
-            case"b":
-
-                event.preventDefault();
-
-                bold();
-
-                break;
-
-            case"i":
-
-                event.preventDefault();
-
-                italic();
-
-                break;
-
-            case"u":
-
-                event.preventDefault();
-
-                underline();
-
-                break;
-
-        }
-
-    }
-
-);
-
-/*==========================================================
-    START
-==========================================================*/
-
-initializeEditor();
-
-registerToolbar();
-
-/*==========================================================
-    PART 10 — WINDOW ENGINE & POLISH
-==========================================================*/
-
-/*==========================================================
-    WINDOW
-==========================================================*/
-
-const windowState={
-
-    dragging:false,
-
-    resizing:false,
-
-    startX:0,
-
-    startY:0,
-
-    startLeft:0,
-
-    startTop:0,
-
-    startWidth:0,
-
-    startHeight:0
-
-};
-
-/*==========================================================
-    INITIALIZE
-==========================================================*/
-
-function initializeWindow(){
-
-    const header=
-
-        document.querySelector(
-
-            ".compose-header"
-
-        );
-
-    if(header){
-
-        header.addEventListener(
-
-            "mousedown",
-
-            beginDrag
-
-        );
-
-    }
-
-    document.addEventListener(
-
-        "mousemove",
-
-        dragWindow
-
-    );
-
-    document.addEventListener(
-
-        "mouseup",
-
-        endDrag
-
-    );
-
-}
-
-/*==========================================================
-    DRAG
-==========================================================*/
-
-function beginDrag(event){
-
-    if(
-
-        state.composeMaximized
-
-    ){
-
-        return;
-
-    }
-
-    windowState.dragging=true;
-
-    const rect=
-
-        ui.composeWindow.getBoundingClientRect();
-
-    windowState.startX=event.clientX;
-
-    windowState.startY=event.clientY;
-
-    windowState.startLeft=rect.left;
-
-    windowState.startTop=rect.top;
-
-}
-
-function dragWindow(event){
-
-    if(
-
-        !windowState.dragging
-
-    ){
-
-        return;
-
-    }
-
-    const dx=
-
-        event.clientX-
-
-        windowState.startX;
-
-    const dy=
-
-        event.clientY-
-
-        windowState.startY;
-
-    ui.composeWindow.style.left=
-
-        `${windowState.startLeft+dx}px`;
-
-    ui.composeWindow.style.top=
-
-        `${windowState.startTop+dy}px`;
-
-    ui.composeWindow.style.right=
-
-        "auto";
-
-    ui.composeWindow.style.bottom=
-
-        "auto";
-
-}
-
-function endDrag(){
-
-    windowState.dragging=false;
-
-}
-
-/*==========================================================
-    REMEMBER SIZE
-==========================================================*/
-
-function saveWindowState(){
-
-    localStorage.setItem(
-
-        "composeWindow",
-
-        JSON.stringify({
-
-            left:
-
-                ui.composeWindow.style.left,
-
-            top:
-
-                ui.composeWindow.style.top,
-
-            width:
-
-                ui.composeWindow.style.width,
-
-            height:
-
-                ui.composeWindow.style.height
-
-        })
-
-    );
-
-}
-
-function restoreWindowState(){
-
-    const raw=
-
-        localStorage.getItem(
-
-            "composeWindow"
-
-        );
-
-    if(
-
-        !raw
-
-    ){
-
-        return;
-
-    }
-
-    const data=
-
-        JSON.parse(
-
-            raw
-
-        );
-
-    ui.composeWindow.style.left=
-
-        data.left;
-
-    ui.composeWindow.style.top=
-
-        data.top;
-
-    ui.composeWindow.style.width=
-
-        data.width;
-
-    ui.composeWindow.style.height=
-
-        data.height;
-
-}
-
-/*==========================================================
-    ANIMATIONS
-==========================================================*/
-
-function fadeIn(element){
-
-    element.classList.remove(
-
-        "hidden"
-
-    );
-
-    requestAnimationFrame(
-
-        ()=>{
-
-            element.classList.add(
-
-                "show"
-
-            );
-
-        }
-
-    );
-
-}
-
-function fadeOut(element){
-
-    element.classList.remove(
+    ui.toast.classList.remove(
 
         "show"
 
     );
 
-    setTimeout(
+}
 
-        ()=>{
+/*==========================================================
+    DIALOG
+==========================================================*/
 
-            element.classList.add(
+function showDialog({
 
-                "hidden"
+    title,
 
-            );
+    subtitle,
 
-        },
+    confirmText = "Continue",
 
-        180
+    cancelText = "Cancel",
+
+    onConfirm = null
+
+}){
+
+    document.getElementById(
+
+        "dialogTitle"
+
+    ).textContent = title;
+
+    document.getElementById(
+
+        "dialogSubtitle"
+
+    ).textContent = subtitle;
+
+    document.getElementById(
+
+        "dialogConfirm"
+
+    ).textContent = confirmText;
+
+    document.getElementById(
+
+        "dialogCancel"
+
+    ).textContent = cancelText;
+
+    ui.dialog.classList.add(
+
+        "show"
+
+    );
+
+    document.getElementById(
+
+        "dialogConfirm"
+
+    ).onclick = ()=>{
+
+        closeDialog();
+
+        onConfirm?.();
+
+    };
+
+}
+
+function closeDialog(){
+
+    ui.dialog.classList.remove(
+
+        "show"
 
     );
 
 }
 
 /*==========================================================
-    RIPPLE
+    COMMON DIALOGS
 ==========================================================*/
 
-function attachRipples(){
+function showDiscardDialog(){
 
-    document
+    showDialog({
 
-        .querySelectorAll(
+        title:
 
-            "button"
+            "Discard draft?",
 
-        )
+        subtitle:
 
-        .forEach(
+            "Unsaved changes will be lost.",
 
-            button=>{
+        confirmText:
 
-                button.addEventListener(
+            "Discard",
 
-                    "click",
+        onConfirm:
 
-                    createRipple
+            resetCompose
 
-                );
-
-            }
-
-        );
+    });
 
 }
 
-function createRipple(event){
+function showDeleteDialog(){
 
-    const button=
+    showDialog({
 
-        event.currentTarget;
+        title:
 
-    const ripple=
+            "Delete email?",
 
-        document.createElement(
+        subtitle:
 
-            "span"
+            "This email will be moved to Trash.",
 
-        );
+        confirmText:
 
-    ripple.className=
+            "Delete",
 
-        "ripple";
+        onConfirm:
 
-    const rect=
+            deleteCurrentEmail
 
-        button.getBoundingClientRect();
+    });
 
-    ripple.style.left=
+}
 
-        `${event.clientX-rect.left}px`;
+function showSignOutDialog(){
 
-    ripple.style.top=
+    showDialog({
 
-        `${event.clientY-rect.top}px`;
+        title:
 
-    button.appendChild(
+            "Sign out?",
 
-        ripple
+        subtitle:
 
-    );
+            "You'll need to sign in again.",
 
-    setTimeout(
+        confirmText:
 
-        ()=>{
+            "Sign Out",
 
-            ripple.remove();
+        onConfirm:
 
-        },
+            signOut
 
-        500
-
-    );
+    });
 
 }
 
 /*==========================================================
-    AUTO RESIZE
+    MENUS
 ==========================================================*/
 
-function handleResize(){
+function closeAllMenus(){
+
+    ui.profileMenu.classList.add(
+
+        "hidden"
+
+    );
+
+    ui.contextMenu.classList.add(
+
+        "hidden"
+
+    );
+
+}
+
+function toggleProfileMenu(){
+
+    const hidden =
+
+        ui.profileMenu.classList.contains(
+
+            "hidden"
+
+        );
+
+    closeAllMenus();
 
     if(
 
-        state.composeMaximized
+        hidden
 
     ){
 
-        ui.composeWindow.style.width=
+        ui.profileMenu.classList.remove(
 
-            `${window.innerWidth}px`;
+            "hidden"
 
-        ui.composeWindow.style.height=
-
-            `${window.innerHeight}px`;
+        );
 
     }
 
 }
 
-window.addEventListener(
+function openContextMenu(event){
 
-    "resize",
+    const card =
 
-    handleResize
+        event.target.closest(
 
-);
-
-/*==========================================================
-    CLOCK
-==========================================================*/
-
-function updateRelativeTimes(){
-
-    document
-
-        .querySelectorAll(
-
-            ".mail-time"
-
-        )
-
-        .forEach(
-
-            element=>{
-
-                /* Future relative time updates */
-
-            }
+            ".mail-item"
 
         );
+
+    if(
+
+        !card
+
+    ){
+
+        return;
+
+    }
+
+    event.preventDefault();
+
+    closeAllMenus();
+
+    ui.contextMenu.style.left =
+
+        `${event.clientX}px`;
+
+    ui.contextMenu.style.top =
+
+        `${event.clientY}px`;
+
+    ui.contextMenu.classList.remove(
+
+        "hidden"
+
+    );
 
 }
 
 /*==========================================================
-    START
-==========================================================*/
-
-initializeWindow();
-
-restoreWindowState();
-
-attachRipples();
-
-setInterval(
-
-    updateRelativeTimes,
-
-    60000
-
-);
-
-/*==========================================================
-    PART 11 — APPLICATION INTEGRATION
+    PART 9 — APPLICATION CONTROLLER
 ==========================================================*/
 
 /*==========================================================
@@ -4468,19 +1712,27 @@ function initializeSidebar(){
 
                     ()=>{
 
-                        const folder=
+                        const folder =
 
                             item.dataset.folder;
 
-                        if(folder){
+                        if(
 
-                            switchFolder(
+                            !folder ||
 
-                                folder
+                            folder === state.currentFolder
 
-                            );
+                        ){
+
+                            return;
 
                         }
+
+                        loadFolder(
+
+                            folder
+
+                        );
 
                     }
 
@@ -4489,270 +1741,6 @@ function initializeSidebar(){
             }
 
         );
-
-}
-
-/*==========================================================
-    READER
-==========================================================*/
-
-function initializeReader(){
-
-    document
-
-        .querySelectorAll(
-
-            ".reader-actions button"
-
-        )
-
-        .forEach(
-
-            button=>{
-
-                button.addEventListener(
-
-                    "click",
-
-                    handleReaderAction
-
-                );
-
-            }
-
-        );
-
-}
-
-function handleReaderAction(event){
-
-    const action=
-
-        event.currentTarget.dataset.action;
-
-    switch(action){
-
-        case"archive":
-
-            archiveCurrentEmail();
-
-            break;
-
-        case"delete":
-
-            showDeleteDialog(
-
-                deleteCurrentEmail
-
-            );
-
-            break;
-
-        case"star":
-
-            starCurrentEmail();
-
-            break;
-
-        case"reply":
-
-            replyToCurrent();
-
-            break;
-
-        case"forward":
-
-            forwardCurrent();
-
-            break;
-
-    }
-
-}
-
-/*==========================================================
-    COMPOSE BUTTONS
-==========================================================*/
-
-function initializeComposeButtons(){
-
-    document
-
-        .querySelector(
-
-            ".send"
-
-        )
-
-        ?.addEventListener(
-
-            "click",
-
-            sendCurrentEmail
-
-        );
-
-    document
-
-        .querySelector(
-
-            ".attach-button"
-
-        )
-
-        ?.addEventListener(
-
-            "click",
-
-            openAttachmentPicker
-
-        );
-
-    document
-
-        .querySelector(
-
-            ".minimize"
-
-        )
-
-        ?.addEventListener(
-
-            "click",
-
-            minimizeCompose
-
-        );
-
-    document
-
-        .querySelector(
-
-            ".maximize"
-
-        )
-
-        ?.addEventListener(
-
-            "click",
-
-            maximizeCompose
-
-        );
-
-}
-
-/*==========================================================
-    FILE PICKER
-==========================================================*/
-
-function openAttachmentPicker(){
-
-    const input=
-
-        document.createElement(
-
-            "input"
-
-        );
-
-    input.type="file";
-
-    input.multiple=true;
-
-    input.onchange=()=>{
-
-        for(
-
-            const file
-
-            of
-
-            input.files
-
-        ){
-
-            addAttachment(
-
-                file
-
-            );
-
-        }
-
-    };
-
-    input.click();
-
-}
-
-/*==========================================================
-    REPLY
-==========================================================*/
-
-function replyToCurrent(){
-
-    if(
-
-        !state.selectedEmail
-
-    ){
-
-        return;
-
-    }
-
-    openCompose();
-
-    compose.to=
-
-        state.selectedEmail.email;
-
-    compose.subject=
-
-        "Re: "+state.selectedEmail.subject;
-
-    ui.composeTo.value=
-
-        compose.to;
-
-    ui.composeSubject.value=
-
-        compose.subject;
-
-}
-
-/*==========================================================
-    FORWARD
-==========================================================*/
-
-function forwardCurrent(){
-
-    if(
-
-        !state.selectedEmail
-
-    ){
-
-        return;
-
-    }
-
-    openCompose();
-
-    compose.subject=
-
-        "Fwd: "+state.selectedEmail.subject;
-
-    ui.composeSubject.value=
-
-        compose.subject;
-
-    ui.composeEditor.innerHTML=
-
-        "<br><br><hr><br>"+
-
-        state.selectedEmail.body;
 
 }
 
@@ -4787,146 +1775,258 @@ function initializeProfile(){
 }
 
 /*==========================================================
-    STARTUP
+    READER ACTIONS
 ==========================================================*/
 
-async function startApplication(){
+function initializeReaderActions(){
 
-    initializeSidebar();
+    document
 
-    initializeReader();
+        .querySelectorAll(
 
-    initializeComposeButtons();
+            ".reader-actions button"
 
-    initializeProfile();
+        )
 
-    initializeEditor();
+        .forEach(
 
-    registerToolbar();
+            button=>{
 
-    await loadAccount();
+                button.addEventListener(
 
-    await loadLabels();
+                    "click",
 
-    await loadFolder(
+                    handleReaderAction
 
-        "inbox"
+                );
 
-    );
-
-    showToast(
-
-        "CosmiMail",
-
-        "Ready."
-
-    );
-
-}
-
-/*==========================================================
-    WINDOW LOAD
-==========================================================*/
-
-window.addEventListener(
-
-    "load",
-
-    ()=>{
-
-        startApplication();
-
-    }
-
-);
-
-/*==========================================================
-    FUTURE
-==========================================================*/
-
-/*
-
-Future ideas:
-
-- Multiple Gmail accounts
-
-- Outlook provider
-
-- Yahoo provider
-
-- Drag mails between folders
-
-- Offline cache
-
-- Background sync
-
-- AI email summaries
-
-- Smart categories
-
-- Rules engine
-
-- Scheduled send
-
-*/
-
-/*==========================================================
-    PART 12 — BACKEND WIRING & CLEANUP
-==========================================================*/
-
-/*==========================================================
-    SAFE API
-==========================================================*/
-
-async function safeRequest(request){
-
-    try{
-
-        return await request();
-
-    }
-
-    catch(error){
-
-        console.error(error);
-
-        hideSpinner();
-
-        showToast(
-
-            "Connection Error",
-
-            "Unable to reach the server."
+            }
 
         );
 
-        return null;
+}
+
+function handleReaderAction(event){
+
+    switch(
+
+        event.currentTarget.dataset.action
+
+    ){
+
+        case "reply":
+
+            replyToCurrent();
+
+            break;
+
+        case "forward":
+
+            forwardCurrent();
+
+            break;
+
+        case "archive":
+
+            archiveCurrentEmail();
+
+            break;
+
+        case "delete":
+
+            showDeleteDialog();
+
+            break;
+
+        case "star":
+
+            starCurrentEmail();
+
+            break;
 
     }
 
 }
 
 /*==========================================================
-    LOAD ACCOUNT
+    KEYBOARD SHORTCUTS
 ==========================================================*/
 
-async function loadAccount(){
+function handleKeyboardShortcuts(event){
 
-    const response=
+    const ctrl =
 
-        await safeRequest(
+        event.ctrlKey ||
 
-            ()=>apiRequest(
+        event.metaKey;
 
-                "/api/me"
+    const key =
 
-            )
-
-        );
+        event.key.toLowerCase();
 
     if(
 
-        !response
+        ctrl &&
+
+        key === "n"
+
+    ){
+
+        event.preventDefault();
+
+        openCompose();
+
+        return;
+
+    }
+
+    if(
+
+        ctrl &&
+
+        key === "f"
+
+    ){
+
+        event.preventDefault();
+
+        ui.searchInput.focus();
+
+        ui.searchInput.select();
+
+        return;
+
+    }
+
+    if(
+
+        ctrl &&
+
+        key === "r"
+
+    ){
+
+        event.preventDefault();
+
+        loadFolder(
+
+            state.currentFolder
+
+        );
+
+        return;
+
+    }
+
+    if(
+
+        ctrl &&
+
+        key === "."
+
+    ){
+
+        event.preventDefault();
+
+        openSettings();
+
+        return;
+
+    }
+
+    if(
+
+        event.key === "Escape"
+
+    ){
+
+        closeAllMenus();
+
+        closeDialog();
+
+        return;
+
+    }
+
+}
+
+/*==========================================================
+    INITIALIZE CONTROLLERS
+==========================================================*/
+
+function initializeControllers(){
+
+    initializeSidebar();
+
+    initializeProfile();
+
+    initializeReaderActions();
+
+}
+
+/*==========================================================
+    PART 10 — RICH TEXT EDITOR
+==========================================================*/
+
+/*==========================================================
+    COMMANDS
+==========================================================*/
+
+const editorCommands = {
+
+    bold: "bold",
+
+    italic: "italic",
+
+    underline: "underline",
+
+    strike: "strikeThrough",
+
+    ordered: "insertOrderedList",
+
+    unordered: "insertUnorderedList",
+
+    left: "justifyLeft",
+
+    center: "justifyCenter",
+
+    right: "justifyRight",
+
+    clear: "removeFormat"
+
+};
+
+/*==========================================================
+    SELECTION
+==========================================================*/
+
+let editorSelection = null;
+
+function saveEditorSelection(){
+
+    const selection =
+
+        window.getSelection();
+
+    if(
+
+        selection.rangeCount
+
+    ){
+
+        editorSelection =
+
+            selection.getRangeAt(0);
+
+    }
+
+}
+
+function restoreEditorSelection(){
+
+    if(
+
+        !editorSelection
 
     ){
 
@@ -4934,300 +2034,482 @@ async function loadAccount(){
 
     }
 
-    state.currentUser=response;
+    const selection =
 
-    renderCurrentUser();
+        window.getSelection();
+
+    selection.removeAllRanges();
+
+    selection.addRange(
+
+        editorSelection
+
+    );
 
 }
 
 /*==========================================================
-    LOAD LABELS
+    FORMAT
 ==========================================================*/
 
-async function loadLabels(){
+function applyEditorCommand(command){
 
-    const labels=
+    restoreEditorSelection();
 
-        await safeRequest(
+    document.execCommand(
 
-            ()=>apiRequest(
+        command,
 
-                "/api/gmail/labels"
+        false,
 
-            )
+        null
+
+    );
+
+    saveEditorSelection();
+
+    ui.composeEditor.focus();
+
+}
+
+/*==========================================================
+    LINK
+==========================================================*/
+
+function insertLink(){
+
+    const url =
+
+        prompt(
+
+            "Enter URL"
 
         );
 
-    if(!labels){
+    if(
+
+        !url
+
+    ){
 
         return;
 
     }
 
-    state.labels=labels;
+    restoreEditorSelection();
+
+    document.execCommand(
+
+        "createLink",
+
+        false,
+
+        url
+
+    );
 
 }
 
 /*==========================================================
-    LOAD EMAIL
+    IMAGE
 ==========================================================*/
 
-async function openEmail(id){
+function insertImage(){
 
-    const mail=
+    const url =
 
-        await safeRequest(
+        prompt(
 
-            ()=>apiRequest(
-
-                `/api/gmail/email/${id}`
-
-            )
+            "Image URL"
 
         );
 
-    if(!mail){
+    if(
+
+        !url
+
+    ){
 
         return;
 
     }
 
-    state.selectedEmail=mail;
+    restoreEditorSelection();
 
-    renderReader();
+    document.execCommand(
+
+        "insertImage",
+
+        false,
+
+        url
+
+    );
 
 }
 
 /*==========================================================
-    REFRESH
+    TOOLBAR
 ==========================================================*/
 
-async function refreshInbox(){
-
-    showSpinner(
-
-        "Refreshing..."
-
-    );
-
-    await loadFolder(
-
-        state.currentFolder
-
-    );
-
-    hideSpinner();
-
-}
-
-/*==========================================================
-    SIDEBAR COUNTS
-==========================================================*/
-
-function updateFolderCounts(){
+function initializeToolbar(){
 
     document
 
-        .querySelector(
+        .querySelectorAll(
 
-            ".badge"
+            "[data-command]"
 
         )
 
-        .textContent=
+        .forEach(
 
-            state.filteredEmails
+            button=>{
 
-            .filter(
+                button.addEventListener(
 
-                mail=>!mail.read
+                    "click",
 
-            )
+                    ()=>{
 
-            .length;
+                        const command =
 
-}
+                            button.dataset.command;
 
-/*==========================================================
-    EMPTY STATES
-==========================================================*/
+                        if(
 
-function showEmptyReader(){
+                            command === "link"
 
-    ui.readerTitle.textContent=
+                        ){
 
-        "Select an email";
+                            insertLink();
 
-    ui.readerBody.innerHTML=`
+                            return;
 
-        <div class="empty-state">
+                        }
 
-            <i class="fa-regular fa-envelope-open"></i>
+                        if(
 
-            <h2>
+                            command === "image"
 
-                No email selected
+                        ){
 
-            </h2>
+                            insertImage();
 
-            <p>
+                            return;
 
-                Choose an email from the inbox.
+                        }
 
-            </p>
+                        applyEditorCommand(
 
-        </div>
+                            editorCommands[command]
 
-    `;
+                        );
 
-}
+                    }
 
-function showEmptyInbox(){
+                );
 
-    ui.emailList.innerHTML=`
-
-        <div class="empty-state">
-
-            <i class="fa-regular fa-folder-open"></i>
-
-            <h2>
-
-                Nothing here
-
-            </h2>
-
-            <p>
-
-                This folder is empty.
-
-            </p>
-
-        </div>
-
-    `;
-
-}
-
-/*==========================================================
-    UTILITIES
-==========================================================*/
-
-function escapeHTML(text){
-
-    const div=
-
-        document.createElement(
-
-            "div"
+            }
 
         );
 
-    div.textContent=text;
-
-    return div.innerHTML;
-
-}
-
-function formatDate(date){
-
-    return new Date(
-
-        date
-
-    ).toLocaleString();
-
 }
 
 /*==========================================================
-    LOGGING
+    ATTACHMENTS
 ==========================================================*/
 
-function debug(...args){
+function initializeAttachments(){
 
-    console.log(
+    ui.composeEditor.addEventListener(
 
-        "[CosmiMail]",
+        "paste",
 
-        ...args
+        handlePaste
+
+    );
+
+    ui.composeEditor.addEventListener(
+
+        "drop",
+
+        handleDrop
+
+    );
+
+    ui.composeEditor.addEventListener(
+
+        "dragover",
+
+        event=>{
+
+            event.preventDefault();
+
+        }
 
     );
 
 }
 
-/*==========================================================
-    STARTUP
-==========================================================*/
+function handlePaste(event){
 
-async function boot(){
+    for(
 
-    debug(
+        const item
 
-        "Booting..."
+        of
 
-    );
+        event.clipboardData.items
 
-    await startApplication();
+    ){
 
-    debug(
+        if(
 
-        "Ready."
+            item.type.startsWith(
 
-    );
+                "image"
+
+            )
+
+        ){
+
+            addAttachment(
+
+                item.getAsFile()
+
+            );
+
+        }
+
+    }
 
 }
 
-window.addEventListener(
+function handleDrop(event){
 
-    "load",
+    event.preventDefault();
 
-    boot
+    for(
 
-);
+        const file
+
+        of
+
+        event.dataTransfer.files
+
+    ){
+
+        addAttachment(
+
+            file
+
+        );
+
+    }
+
+}
 
 /*==========================================================
-    PART 13 — RELEASE BUILD
+    INITIALIZE
+==========================================================*/
+
+function initializeEditor(){
+
+    ui.composeEditor.addEventListener(
+
+        "mouseup",
+
+        saveEditorSelection
+
+    );
+
+    ui.composeEditor.addEventListener(
+
+        "keyup",
+
+        saveEditorSelection
+
+    );
+
+    initializeToolbar();
+
+    initializeAttachments();
+
+}
+
+/*==========================================================
+    PART 11 — WINDOW ENGINE & APPLICATION
 ==========================================================*/
 
 /*==========================================================
-    VERSION
+    WINDOW STATE
 ==========================================================*/
 
-const APP={
+const windowState = {
 
-    name:"CosmiMail",
+    dragging: false,
 
-    version:"2.0.0-alpha",
+    startX: 0,
 
-    company:"Cosmiway Labs"
+    startY: 0,
+
+    left: 0,
+
+    top: 0
 
 };
 
 /*==========================================================
-    PERFORMANCE
+    DRAGGING
 ==========================================================*/
 
-function beginPerformance(){
+function beginWindowDrag(event){
 
-    console.time(
+    if(
 
-        "CosmiMail Startup"
+        state.compose.maximized
+
+    ){
+
+        return;
+
+    }
+
+    windowState.dragging = true;
+
+    const rect =
+
+        ui.composeWindow.getBoundingClientRect();
+
+    windowState.startX =
+
+        event.clientX;
+
+    windowState.startY =
+
+        event.clientY;
+
+    windowState.left =
+
+        rect.left;
+
+    windowState.top =
+
+        rect.top;
+
+}
+
+function dragWindow(event){
+
+    if(
+
+        !windowState.dragging
+
+    ){
+
+        return;
+
+    }
+
+    const dx =
+
+        event.clientX -
+
+        windowState.startX;
+
+    const dy =
+
+        event.clientY -
+
+        windowState.startY;
+
+    ui.composeWindow.style.left =
+
+        `${windowState.left + dx}px`;
+
+    ui.composeWindow.style.top =
+
+        `${windowState.top + dy}px`;
+
+}
+
+function endWindowDrag(){
+
+    windowState.dragging = false;
+
+}
+
+/*==========================================================
+    SAVE WINDOW
+==========================================================*/
+
+function saveWindow(){
+
+    localStorage.setItem(
+
+        "composeWindow",
+
+        JSON.stringify({
+
+            left:
+
+                ui.composeWindow.style.left,
+
+            top:
+
+                ui.composeWindow.style.top,
+
+            width:
+
+                ui.composeWindow.style.width,
+
+            height:
+
+                ui.composeWindow.style.height
+
+        })
 
     );
 
 }
 
-function endPerformance(){
+function restoreWindow(){
 
-    console.timeEnd(
+    const saved =
 
-        "CosmiMail Startup"
+        localStorage.getItem(
+
+            "composeWindow"
+
+        );
+
+    if(
+
+        !saved
+
+    ){
+
+        return;
+
+    }
+
+    const windowData =
+
+        JSON.parse(saved);
+
+    Object.assign(
+
+        ui.composeWindow.style,
+
+        windowData
 
     );
 
 }
 
 /*==========================================================
-    ERROR HANDLER
+    ERROR HANDLING
 ==========================================================*/
 
 window.addEventListener(
@@ -5282,153 +2564,37 @@ window.addEventListener(
     CLEANUP
 ==========================================================*/
 
-function cleanup(){
-
-    closeAllMenus();
-
-    closeDialog();
-
-}
-
-/*==========================================================
-    VISIBILITY
-==========================================================*/
-
-document.addEventListener(
-
-    "visibilitychange",
-
-    ()=>{
-
-        if(
-
-            document.hidden
-
-        ){
-
-            saveWindowState();
-
-        }
-
-    }
-
-);
-
-/*==========================================================
-    BEFORE UNLOAD
-==========================================================*/
-
 window.addEventListener(
 
     "beforeunload",
 
-    ()=>{
-
-        saveWindowState();
-
-    }
+    saveWindow
 
 );
 
 /*==========================================================
-    HEALTH CHECK
-==========================================================*/
-
-function verifyDOM(){
-
-    const required=[
-
-        ui.emailList,
-
-        ui.readerBody,
-
-        ui.composeWindow,
-
-        ui.composeEditor,
-
-        ui.settingsPage,
-
-        ui.spinner,
-
-        ui.toast,
-
-        ui.dialog
-
-    ];
-
-    const missing=
-
-        required.filter(
-
-            element=>!element
-
-        );
-
-    if(
-
-        missing.length
-
-    ){
-
-        console.warn(
-
-            "Missing DOM elements:",
-
-            missing.length
-
-        );
-
-    }
-
-}
-
-/*==========================================================
-    APPLICATION READY
-==========================================================*/
-
-async function initializeApplication(){
-
-    beginPerformance();
-
-    verifyDOM();
-
-    cleanup();
-
-    await boot();
-
-    endPerformance();
-
-    console.log(
-
-`================================================
-
- ${APP.name}
-
- Version ${APP.version}
-
- ${APP.company}
-
- Frontend Ready.
-
-================================================`
-
-    );
-
-}
-
-/*==========================================================
-    START
+    APPLICATION STARTUP
 ==========================================================*/
 
 window.addEventListener(
 
     "DOMContentLoaded",
 
-    initializeApplication
+    async ()=>{
+
+        verifyDOM();
+
+        initializeControllers();
+
+        initializeEditor();
+
+        initializeUI();
+
+        restoreWindow();
+
+        await startApplication();
+
+    }
 
 );
-
-/*==========================================================
-    END OF FILE
-==========================================================*/
 
